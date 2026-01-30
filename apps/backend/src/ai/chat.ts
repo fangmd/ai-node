@@ -1,6 +1,11 @@
 import { createOpenAI } from "@ai-sdk/openai"
 import { devToolsMiddleware } from "@ai-sdk/devtools"
-import { streamText, wrapLanguageModel } from "ai"
+import {
+  convertToModelMessages,
+  streamText,
+  type UIMessage,
+  wrapLanguageModel,
+} from "ai"
 import { isDev } from "../common"
 
 const CONFIG_MSG = "OPENAI_BASE_URL and OPENAI_API_KEY must be set"
@@ -14,8 +19,7 @@ function getProvider() {
   return createOpenAI({ baseURL, apiKey })
 }
 
-function getModel() {
-  const provider = getProvider()
+function getModel(provider: ReturnType<typeof createOpenAI>) {
   const baseModel = provider("gpt-5.2")
   if (isDev) {
     return wrapLanguageModel({
@@ -28,19 +32,35 @@ function getModel() {
   return baseModel
 }
 
+const tools = (provider: ReturnType<typeof createOpenAI>) => ({
+  web_search: provider.tools.webSearch({}),
+})
+
 export type ChatMessage = {
   role: "user" | "assistant" | "system"
   content: string
 }
 
 export function streamChat(messages: ChatMessage[]) {
-  const model = getModel()
+  const provider = getProvider()
+  return streamText({
+    model: getModel(provider),
+    tools: tools(provider),
+    messages: messages.map((m) => ({ role: m.role, content: m.content })),
+  })
+}
+
+export async function streamChatFromUIMessages(uiMessages: UIMessage[]) {
+  const provider = getProvider()
+  const model = getModel(provider)
+  const toolSet = tools(provider)
+  const modelMessages = await convertToModelMessages(uiMessages, {
+    tools: toolSet,
+  })
   return streamText({
     model,
-    tools: {
-      // web_search: openai.tools.webSearchPreview(),
-    },
-    messages: messages.map((m) => ({ role: m.role, content: m.content })),
+    tools: toolSet,
+    messages: modelMessages,
   })
 }
 
