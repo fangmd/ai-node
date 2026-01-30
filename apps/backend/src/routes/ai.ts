@@ -1,9 +1,6 @@
 import { Hono } from "hono"
 import type { UIMessage } from "ai"
-import {
-  streamChatFromUIMessages,
-  CONFIG_MSG,
-} from "../ai/chat"
+import { streamChatFromUIMessages, CONFIG_MSG } from "../ai/chat"
 import { fail, success } from "../response"
 
 const ai = new Hono()
@@ -18,7 +15,9 @@ ai.post("/chat", async (c) => {
       return fail(c, 400, "messages array is required and must be non-empty")
     }
 
+    console.log("chat messages", JSON.stringify(messages))
     const result = await streamChatFromUIMessages(messages)
+
     return result.toUIMessageStreamResponse({ originalMessages: messages })
   } catch (e) {
     console.error(e)

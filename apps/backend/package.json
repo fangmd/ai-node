@@ -17,7 +17,8 @@
     "ai": "^6.0.62",
     "dotenv": "^17.2.3",
     "hono": "^4.11.7",
-    "nodejs-snowflake": "^2.0.1"
+    "nodejs-snowflake": "^2.0.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@hono/vite-dev-server": "^0.21.0",

@@ -76,6 +76,32 @@ function MessageParts({
           }
           return null
         }
+        if (part.type === "tool-get_server_ip") {
+          const p = part as unknown as {
+            state: string
+            toolCallId: string
+            output?: string
+          }
+          const hasResult =
+            p.state === "output-available" || p.state === "result-available"
+          const ip =
+            typeof p.output === "string"
+              ? p.output
+              : p.output != null && typeof (p.output as { result?: string })?.result === "string"
+                ? (p.output as { result: string }).result
+                : null
+          if (hasResult && ip != null) {
+            return (
+              <div
+                key={p.toolCallId}
+                className="mt-1 text-sm text-muted-foreground"
+              >
+                服务端 IP: <span className="font-mono">{ip}</span>
+              </div>
+            )
+          }
+          return null
+        }
         return null
       })}
     </>
