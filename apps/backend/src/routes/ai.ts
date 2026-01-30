@@ -1,8 +1,27 @@
 import { Hono } from "hono"
-import { success } from "../response"
+import { chat, CONFIG_MSG, type ChatMessage } from "../ai/chat"
+import { fail, success } from "../response"
 
 const ai = new Hono()
 
 ai.get("/hello", (c) => success(c, { message: "AI API ready" }))
+
+ai.post("/chat", async (c) => {
+  try {
+    const body = await c.req.json<{ messages?: ChatMessage[] }>()
+    const messages = body?.messages
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return fail(c, 400, "messages array is required and must be non-empty")
+    }
+    const { text } = await chat(messages)
+    return success(c, { content: text })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "chat failed"
+    if (msg === CONFIG_MSG) {
+      return fail(c, 503, "AI configuration is missing. Set OPENAI_BASE_URL and OPENAI_API_KEY.")
+    }
+    return fail(c, 500, msg)
+  }
+})
 
 export default ai
