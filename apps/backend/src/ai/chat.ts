@@ -1,6 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai"
 import { devToolsMiddleware } from "@ai-sdk/devtools"
 import { streamText, wrapLanguageModel } from "ai"
+import { isDev } from "../common"
 
 const CONFIG_MSG = "OPENAI_BASE_URL and OPENAI_API_KEY must be set"
 
@@ -12,8 +13,6 @@ function getProvider() {
   }
   return createOpenAI({ baseURL, apiKey })
 }
-
-const isDev = process.env.NODE_ENV !== "production"
 
 function getModel() {
   const provider = getProvider()
