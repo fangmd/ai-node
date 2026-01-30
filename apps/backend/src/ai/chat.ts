@@ -1,5 +1,5 @@
-import { createOpenAI } from "@ai-sdk/openai"
-import { generateText } from "ai"
+import { createOpenAI, openai } from "@ai-sdk/openai"
+import { streamText } from "ai"
 
 const CONFIG_MSG = "OPENAI_BASE_URL and OPENAI_API_KEY must be set"
 
@@ -12,16 +12,21 @@ function getProvider() {
   return createOpenAI({ baseURL, apiKey })
 }
 
-export type ChatMessage = { role: "user" | "assistant" | "system"; content: string }
+export type ChatMessage = {
+  role: "user" | "assistant" | "system"
+  content: string
+}
 
-export async function chat(messages: ChatMessage[]): Promise<{ text: string }> {
-  const openai = getProvider()
-  const model = openai("gpt-3.5-turbo")
-  const { text } = await generateText({
+export function streamChat(messages: ChatMessage[]) {
+  const provider = getProvider()
+  const model = provider("gpt-5.2")
+  return streamText({
     model,
+    tools: {
+      // web_search: openai.tools.webSearchPreview(),
+    },
     messages: messages.map((m) => ({ role: m.role, content: m.content })),
   })
-  return { text }
 }
 
 export { CONFIG_MSG }

@@ -1,3 +1,10 @@
+import { config } from "dotenv"
+import { resolve } from "path"
+
+const cwd = process.cwd()
+config({ path: resolve(cwd, ".env.example") })
+config({ path: resolve(cwd, ".env") })
+
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { serve } from "@hono/node-server"
@@ -18,7 +25,15 @@ app.get("/", (c) => success(c, { message: "Hello from Hono" }))
 app.get("/health", (c) => success(c, { status: "ok" }))
 app.route("/api/ai", ai)
 
-const port = Number(process.env.PORT) || 3000
-serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`Server running at http://localhost:${info.port}`)
-})
+console.log("process.env.OPENAI_BASE_URL", process.env.OPENAI_BASE_URL)
+console.log("process.env.OPENAI_API_KEY", process.env.OPENAI_API_KEY)
+console.log("process.env.PORT", process.env.PORT)
+
+if (import.meta.env.PROD) {
+  const port = Number(process.env.PORT) || 3000
+  serve({ fetch: app.fetch, port }, (info) => {
+    console.log(`Server running at http://localhost:${info.port}`)
+  })
+}
+
+export default app

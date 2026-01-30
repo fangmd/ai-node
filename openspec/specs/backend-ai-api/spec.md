@@ -21,15 +21,15 @@ The backend SHALL provide `GET /api/ai/hello` that returns a success response us
 - **THEN** the response body is `{ "code": 200, "msg": "success", "data": <object> }` and HTTP status is 200
 
 ### Requirement: Chat endpoint
-The backend SHALL provide `POST /api/ai/chat` that accepts a JSON body with a `messages` array (each item having `role` and `content` as per OpenAI chat format) and SHALL return the assistant reply in the unified response format (code 200, msg "success", data containing the assistant message content or equivalent). The endpoint SHALL use the ai-sdk to call an OpenAI-compatible LLM.
+The backend SHALL provide `POST /api/ai/chat` that accepts a JSON body with a `messages` array (each item having `role` and `content` as per OpenAI chat format) and SHALL stream the assistant reply via HTTP Server-Sent Events (SSE). The response SHALL use `Content-Type: text/event-stream` and SHALL emit event stream chunks (e.g. `data: {...}`) containing incremental assistant content or a final envelope. The endpoint SHALL use the ai-sdk (e.g. `streamText`) to call an OpenAI-compatible LLM.
 
-#### Scenario: chat returns assistant reply
+#### Scenario: chat streams assistant reply
 - **WHEN** a client sends `POST /api/ai/chat` with a valid body `{ "messages": [ { "role": "user", "content": "Hello" } ] }`
-- **THEN** the response body is `{ "code": 200, "msg": "success", "data": <object containing assistant reply> }` and HTTP status is 200
+- **THEN** the response has `Content-Type: text/event-stream`, HTTP status 200, and the body is an SSE stream that delivers assistant reply content (e.g. text deltas or structured chunks) until the stream ends
 
 #### Scenario: chat fails when upstream config missing
 - **WHEN** `OPENAI_BASE_URL` or `OPENAI_API_KEY` is not set and a client sends `POST /api/ai/chat`
-- **THEN** the backend SHALL respond with an error (e.g. 503 or 400) using the unified response format (fail) and a message indicating configuration is missing
+- **THEN** the backend SHALL respond with an error (e.g. 503 or 400) using a non-streaming response (e.g. JSON with unified fail format) and a message indicating configuration is missing
 
 ### Requirement: OpenAI config via environment
 The backend SHALL read OpenAI-compatible endpoint configuration from environment variables only: `OPENAI_BASE_URL` (base URL of the API) and `OPENAI_API_KEY` (API key). The backend MUST NOT hardcode API keys or default base URLs in source code.

@@ -20,6 +20,9 @@ export default function Home() {
       <p>API: {message}</p>
       <Link to="/about" className="text-blue-600 underline">
         About
+      </Link>{" "}
+      <Link to="/chat" className="text-blue-600 underline">
+        Chat
       </Link>
     </div>
   );

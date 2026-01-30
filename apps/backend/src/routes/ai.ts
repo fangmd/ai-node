@@ -1,5 +1,5 @@
 import { Hono } from "hono"
-import { chat, CONFIG_MSG, type ChatMessage } from "../ai/chat"
+import { streamChat, CONFIG_MSG, type ChatMessage } from "../ai/chat"
 import { fail, success } from "../response"
 
 const ai = new Hono()
@@ -13,12 +13,19 @@ ai.post("/chat", async (c) => {
     if (!Array.isArray(messages) || messages.length === 0) {
       return fail(c, 400, "messages array is required and must be non-empty")
     }
-    const { text } = await chat(messages)
-    return success(c, { content: text })
+    console.log("messages", messages)
+
+    const result = streamChat(messages)
+    return result.toTextStreamResponse()
   } catch (e) {
+    console.error(e)
     const msg = e instanceof Error ? e.message : "chat failed"
     if (msg === CONFIG_MSG) {
-      return fail(c, 503, "AI configuration is missing. Set OPENAI_BASE_URL and OPENAI_API_KEY.")
+      return fail(
+        c,
+        503,
+        "AI configuration is missing. Set OPENAI_BASE_URL and OPENAI_API_KEY."
+      )
     }
     return fail(c, 500, msg)
   }

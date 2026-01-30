@@ -1,4 +1,6 @@
 import { defineConfig } from "vite";
+import devServer from "@hono/vite-dev-server";
+import nodeAdapter from "@hono/vite-dev-server/node";
 
 const nodeBuiltins = [
   "node:http",
@@ -23,6 +25,15 @@ const nodeBuiltins = [
 ];
 
 export default defineConfig({
+  plugins: [
+    devServer({
+      entry: "src/index.ts",
+      adapter: nodeAdapter,
+    }),
+  ],
+  server: {
+    port: Number(process.env.PORT) || 3000,
+  },
   build: {
     ssr: "src/index.ts",
     outDir: "dist",
