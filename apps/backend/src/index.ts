@@ -28,6 +28,9 @@ app.route("/api/ai", ai)
 console.log("process.env.OPENAI_BASE_URL", process.env.OPENAI_BASE_URL)
 console.log("process.env.OPENAI_API_KEY", process.env.OPENAI_API_KEY)
 console.log("process.env.PORT", process.env.PORT)
+console.log("process.env.NODE_ENV", process.env.NODE_ENV)
+
+console.log("isDev", process.env.NODE_ENV !== "production")
 
 if (import.meta.env.PROD) {
   const port = Number(process.env.PORT) || 3000

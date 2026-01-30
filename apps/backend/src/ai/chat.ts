@@ -1,5 +1,6 @@
-import { createOpenAI, openai } from "@ai-sdk/openai"
-import { streamText } from "ai"
+import { createOpenAI } from "@ai-sdk/openai"
+import { devToolsMiddleware } from "@ai-sdk/devtools"
+import { streamText, wrapLanguageModel } from "ai"
 
 const CONFIG_MSG = "OPENAI_BASE_URL and OPENAI_API_KEY must be set"
 
@@ -12,14 +13,29 @@ function getProvider() {
   return createOpenAI({ baseURL, apiKey })
 }
 
+const isDev = process.env.NODE_ENV !== "production"
+
+function getModel() {
+  const provider = getProvider()
+  const baseModel = provider("gpt-5.2")
+  if (isDev) {
+    return wrapLanguageModel({
+      model: baseModel,
+      middleware: devToolsMiddleware() as Parameters<
+        typeof wrapLanguageModel
+      >[0]["middleware"],
+    })
+  }
+  return baseModel
+}
+
 export type ChatMessage = {
   role: "user" | "assistant" | "system"
   content: string
 }
 
 export function streamChat(messages: ChatMessage[]) {
-  const provider = getProvider()
-  const model = provider("gpt-5.2")
+  const model = getModel()
   return streamText({
     model,
     tools: {

@@ -6,10 +6,12 @@
     "dev": "vite",
     "build": "vite build",
     "start": "node dist/index.js",
+    "devtools": "npx @ai-sdk/devtools",
     "lint": "eslint ."
   },
   "dependencies": {
     "@ai-node/types": "workspace:*",
+    "@ai-sdk/devtools": "^0.0.10",
     "@ai-sdk/openai": "^3.0.23",
     "@hono/node-server": "^1.19.9",
     "ai": "^6.0.62",

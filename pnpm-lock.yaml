@@ -17,6 +17,9 @@ importers:
       '@ai-node/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@ai-sdk/devtools':
+        specifier: ^0.0.10
+        version: 0.0.10
       '@ai-sdk/openai':
         specifier: ^3.0.23
         version: 3.0.23(zod@3.25.76)
@@ -113,6 +116,10 @@ importers:
   packages/types: {}
 
 packages:
+
+  '@ai-sdk/devtools@0.0.10':
+    resolution: {integrity: sha512-Qx79A2mAy1EQUU6RGFrVWiWZ1jdqbgiDPP4LVd+yY/RFs8cq7dAKAUaRLyo3kdKvcj5tVmpfDgnDdCmXqnE5dQ==}
+    hasBin: true
 
   '@ai-sdk/gateway@3.0.29':
     resolution: {integrity: sha512-zf6yXT+7DcVGWG7ntxVCYC48X/opsWlO5ePvgH8W9DaEVUtkemqKUEzBqowQ778PkZo8sqMnRfD0+fi9HamRRQ==}
@@ -1395,6 +1402,12 @@ packages:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
 snapshots:
+
+  '@ai-sdk/devtools@0.0.10':
+    dependencies:
+      '@ai-sdk/provider': 3.0.6
+      '@hono/node-server': 1.19.9(hono@4.11.7)
+      hono: 4.11.7
 
   '@ai-sdk/gateway@3.0.29(zod@3.25.76)':
     dependencies:
