@@ -35,6 +35,9 @@ importers:
       hono:
         specifier: ^4.11.7
         version: 4.11.7
+      nodejs-snowflake:
+        specifier: ^2.0.1
+        version: 2.0.1
     devDependencies:
       '@hono/vite-dev-server':
         specifier: ^0.21.0
@@ -1173,6 +1176,9 @@ packages:
 
   node-releases@2.0.27:
     resolution: {integrity: sha512-nmh3lCkYZ3grZvqcCH+fjmQ7X+H0OeZgP40OierEaAptX4XofMh5kwNbWh7lBduUzCcV/8kZ+NDLCwm2iorIlA==}
+
+  nodejs-snowflake@2.0.1:
+    resolution: {integrity: sha512-zMfDorNNsJm1OWWx/OUUGVT0bQ3TwC2ti4URD8UjnpffVLtLpy3eBDIaV5TnLs91YrRhwBD6L0StqU6YtnZt9A==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -2338,6 +2344,8 @@ snapshots:
   natural-compare@1.4.0: {}
 
   node-releases@2.0.27: {}
+
+  nodejs-snowflake@2.0.1: {}
 
   optionator@0.9.4:
     dependencies:

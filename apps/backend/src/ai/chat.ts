@@ -6,7 +6,7 @@ import {
   type UIMessage,
   wrapLanguageModel,
 } from "ai"
-import { isDev } from "../common"
+import { isDev } from "../common/env"
 
 const CONFIG_MSG = "OPENAI_BASE_URL and OPENAI_API_KEY must be set"
 

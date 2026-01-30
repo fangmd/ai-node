@@ -8,9 +8,12 @@ config({ path: resolve(cwd, ".env") })
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { serve } from "@hono/node-server"
-import { isDev } from "./common"
+import { isDev } from "./common/env"
 import { success } from "./response"
 import ai from "./routes/ai"
+;(BigInt.prototype as any).toJSON = function () {
+  return this.toString()
+}
 
 const app = new Hono()
 
