@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 import type { UIMessage } from "ai"
-import { streamChatFromUIMessages, CONFIG_MSG } from "../ai/chat"
+import { streamChatFromUIMessages, CONFIG_ERR_PREFIX } from "../ai/chat"
 import { fail, success } from "../response"
 
 const ai = new Hono()
@@ -22,12 +22,8 @@ ai.post("/chat", async (c) => {
   } catch (e) {
     console.error(e)
     const msg = e instanceof Error ? e.message : "chat failed"
-    if (msg === CONFIG_MSG) {
-      return fail(
-        c,
-        503,
-        "AI configuration is missing. Set OPENAI_BASE_URL and OPENAI_API_KEY."
-      )
+    if (msg.startsWith(CONFIG_ERR_PREFIX)) {
+      return fail(c, 503, msg)
     }
     return fail(c, 500, msg)
   }

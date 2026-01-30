@@ -17,6 +17,9 @@ importers:
       '@ai-node/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@ai-sdk/deepseek':
+        specifier: ^2.0.15
+        version: 2.0.15(zod@4.3.6)
       '@ai-sdk/devtools':
         specifier: ^0.0.10
         version: 0.0.10
@@ -128,6 +131,12 @@ importers:
   packages/types: {}
 
 packages:
+
+  '@ai-sdk/deepseek@2.0.15':
+    resolution: {integrity: sha512-3wJUjNjGrTZS3K8OEfHD1PZYhzkcXuoL8KIVtzi6WrC5xrDQPjCBPATmdKPV7DgDCF+wujQOaMz5cv40Yg+hog==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
 
   '@ai-sdk/devtools@0.0.10':
     resolution: {integrity: sha512-Qx79A2mAy1EQUU6RGFrVWiWZ1jdqbgiDPP4LVd+yY/RFs8cq7dAKAUaRLyo3kdKvcj5tVmpfDgnDdCmXqnE5dQ==}
@@ -1441,6 +1450,12 @@ packages:
     resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
 snapshots:
+
+  '@ai-sdk/deepseek@2.0.15(zod@4.3.6)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.6
+      '@ai-sdk/provider-utils': 4.0.11(zod@4.3.6)
+      zod: 4.3.6
 
   '@ai-sdk/devtools@0.0.10':
     dependencies:
