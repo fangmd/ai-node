@@ -1,14 +1,9 @@
 import type { Context } from "hono"
-
-export type ApiResponse<T = object> = {
-  code: number
-  msg: string
-  data: T
-}
+import type { ApiResponse } from "@ai-node/types"
 
 export function success<T = object>(c: Context, data?: T) {
-  return c.json(
-    { code: 200, msg: "success", data: (data ?? {}) as object },
+  return c.json<ApiResponse<T>>(
+    { code: 200, msg: "success", data: (data ?? {}) as T },
     200
   )
 }
