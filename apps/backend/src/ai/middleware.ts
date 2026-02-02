@@ -1,0 +1,15 @@
+import type { LanguageModelMiddleware } from "ai"
+import { isDev } from "../common/env"
+
+export const customLogMiddleware: LanguageModelMiddleware = {
+  specificationVersion: "v3",
+  transformParams: async ({ type, params }) => {
+    if (isDev) {
+      console.log(
+        `[chat] model request type=${type} params=`,
+        JSON.stringify(params, null, 2)
+      )
+    }
+    return params
+  },
+}
