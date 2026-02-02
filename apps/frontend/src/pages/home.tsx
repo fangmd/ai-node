@@ -23,6 +23,9 @@ export default function Home() {
       </Link>{" "}
       <Link to="/chat" className="text-blue-600 underline">
         Chat
+      </Link>{" "}
+      <Link to="/me" className="text-blue-600 underline">
+        个人信息
       </Link>
     </div>
   );

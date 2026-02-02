@@ -130,6 +130,9 @@ export default function Chat() {
         <Link to="/" className="text-blue-600 underline">
           Home
         </Link>
+        <Link to="/me" className="text-blue-600 underline">
+          个人信息
+        </Link>
       </div>
       <div className="flex-1 overflow-y-auto border rounded p-4 space-y-3 bg-gray-50">
         {messages?.map((m) => (

@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose"
-import { JWT_SECRET, JWT_EXPIRES_IN } from "../common/env.js"
+import { config } from "../common/env.js"
 
-const secret = new TextEncoder().encode(JWT_SECRET)
+const secret = new TextEncoder().encode(config.auth.jwtSecret)
 
 export type JwtPayload = { sub: string; username: string }
 
@@ -9,7 +9,7 @@ export async function signToken(payload: JwtPayload): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(JWT_EXPIRES_IN)
+    .setExpirationTime(config.auth.jwtExpiresIn)
     .sign(secret)
 }
 

@@ -3,13 +3,13 @@
  * 未设置时返回 undefined，使用默认 fetch。
  */
 import { EnvHttpProxyAgent, fetch as undiciFetch } from "undici"
+import { config } from "../common/env.js"
 
 let cached: typeof globalThis.fetch | undefined
 let cachedEnv: string | undefined
 
 export function getProxyFetch(): typeof globalThis.fetch | undefined {
-  const proxyEnv = process.env.HTTP_PROXY ?? process.env.HTTPS_PROXY
-  console.log("proxyEnv", proxyEnv)
+  const proxyEnv = config.proxy.httpProxy ?? config.proxy.httpsProxy
 
   if (!proxyEnv?.trim()) return undefined
   if (cached && cachedEnv === proxyEnv) return cached

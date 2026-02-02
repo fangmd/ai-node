@@ -1,14 +1,8 @@
-import { config } from "dotenv"
-import { resolve } from "path"
-
-const cwd = process.cwd()
-config({ path: resolve(cwd, ".env.example") })
-config({ path: resolve(cwd, ".env") })
-
+import "./common/env"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { serve } from "@hono/node-server"
-import { isDev } from "./common/env"
+import { config } from "./common/env"
 import { success } from "./response"
 import ai from "./routes/ai"
 import auth from "./routes/auth"
@@ -39,17 +33,8 @@ app.get("/api/me", jwtAuth, (c) => {
   return success(c, { id: user.id, username: user.username })
 })
 
-console.log("process.env.OPENAI_BASE_URL", process.env.OPENAI_BASE_URL)
-console.log("process.env.OPENAI_API_KEY", process.env.OPENAI_API_KEY)
-console.log("process.env.PORT", process.env.PORT)
-console.log("process.env.NODE_ENV", process.env.NODE_ENV)
-console.log("process.env.DATABASE_URL", process.env.DATABASE_URL)
-
-console.log("isDev", isDev)
-
-if (!isDev) {
-  const port = Number(process.env.PORT) || 3000
-  serve({ fetch: app.fetch, port }, (info) => {
+if (!config.server.isDev) {
+  serve({ fetch: app.fetch, port: config.server.port }, (info) => {
     console.log(`Server running at http://localhost:${info.port}`)
   })
 }

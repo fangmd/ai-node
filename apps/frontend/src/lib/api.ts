@@ -26,3 +26,12 @@ export async function request(
 
   return res
 }
+
+export type MeData = { id: string; username: string }
+
+export async function getMe(): Promise<{ id: string; username: string } | null> {
+  const res = await request("/api/me")
+  if (!res.ok) return null
+  const json = (await res.json()) as { code: number; msg: string; data: MeData }
+  return json.data ?? null
+}

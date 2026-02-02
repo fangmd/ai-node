@@ -1,5 +1,6 @@
 import { createDeepSeek } from "@ai-sdk/deepseek"
 import { createOpenAI } from "@ai-sdk/openai"
+import { config } from "../common/env.js"
 import { getProxyFetch } from "./proxy-fetch"
 import { localTools } from "./tools"
 
@@ -12,35 +13,17 @@ export const DEFAULT_MODEL: Record<ProviderKind, string> = {
   deepseek: "deepseek-chat",
 }
 
-const PROVIDER_ENV: Record<ProviderKind, { baseURL: string; apiKey: string }> =
-  {
-    openai: { baseURL: "OPENAI_BASE_URL", apiKey: "OPENAI_API_KEY" },
-    deepseek: { baseURL: "DEEPSEEK_BASE_URL", apiKey: "DEEPSEEK_API_KEY" },
-  }
-
-function getProviderKind(): ProviderKind {
-  const raw = (process.env.AI_PROVIDER ?? "openai").toLowerCase()
-  if (PROVIDER_KINDS.includes(raw as ProviderKind)) {
-    return raw as ProviderKind
-  }
-  throw new Error(
-    `${CONFIG_ERR_PREFIX}Unknown AI_PROVIDER "${raw}". Use: ${PROVIDER_KINDS.join(
-      ", "
-    )}`
-  )
-}
-
-function requireEnv(kind: ProviderKind): { baseURL: string; apiKey: string } {
-  const keys = PROVIDER_ENV[kind]
-  const missing = [keys.baseURL, keys.apiKey].filter(
-    (k) => !process.env[k]?.trim()
-  )
-  if (missing.length) {
-    throw new Error(CONFIG_ERR_PREFIX + missing.join(", "))
+function getBaseURLAndApiKey(): { baseURL: string; apiKey: string } {
+  const ai = config.ai
+  if (ai.provider === "openai") {
+    return {
+      baseURL: ai.openaiBaseURL!.trim(),
+      apiKey: ai.openaiApiKey!.trim(),
+    }
   }
   return {
-    baseURL: process.env[keys.baseURL]!.trim(),
-    apiKey: process.env[keys.apiKey]!.trim(),
+    baseURL: ai.deepseekBaseURL!.trim(),
+    apiKey: ai.deepseekApiKey!.trim(),
   }
 }
 
@@ -57,8 +40,8 @@ function useChatApi(baseURL: string, modelId: string): boolean {
 }
 
 export function getProvider() {
-  const kind = getProviderKind()
-  const { baseURL, apiKey } = requireEnv(kind)
+  const kind = config.ai.provider
+  const { baseURL, apiKey } = getBaseURLAndApiKey()
   const fetchOption = getProxyFetch()
   if (kind === "deepseek") {
     const deepseek = createDeepSeek({ baseURL, apiKey, fetch: fetchOption })

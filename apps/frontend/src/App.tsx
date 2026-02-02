@@ -6,6 +6,7 @@ import Home from "./pages/home"
 import About from "./pages/about"
 import Chat from "./pages/chat"
 import Login from "./pages/login"
+import Me from "./pages/me"
 
 export default function App() {
   const navigate = useNavigate()
@@ -21,6 +22,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route element={<ProtectedRoute />}>
         <Route path="chat" element={<Chat />} />
+        <Route path="me" element={<Me />} />
       </Route>
     </Routes>
   )

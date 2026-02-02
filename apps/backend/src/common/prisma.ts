@@ -1,13 +1,6 @@
-import { config } from "dotenv"
-import { resolve, dirname } from "path"
-import { fileURLToPath } from "url"
 import { PrismaMariaDb } from "@prisma/adapter-mariadb"
 import { PrismaClient } from "../generated/prisma/client.js"
-import { isDev } from "./env.js"
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
-config({ path: resolve(__dirname, "../../.env.example") })
-config({ path: resolve(__dirname, "../../.env") })
+import { config } from "./env.js"
 
 function adapterConfigFromUrl(url: string) {
   if (!url || !url.trim()) {
@@ -24,9 +17,8 @@ function adapterConfigFromUrl(url: string) {
   }
 }
 
-const url = process.env.DATABASE_URL ?? ""
-const adapter = new PrismaMariaDb(adapterConfigFromUrl(url))
+const adapter = new PrismaMariaDb(adapterConfigFromUrl(config.database.url))
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter })
-if (isDev) globalForPrisma.prisma = prisma
+if (config.server.isDev) globalForPrisma.prisma = prisma

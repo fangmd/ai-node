@@ -31,6 +31,7 @@ export default defineConfig({
       adapter: nodeAdapter,
     }),
   ],
+  // Vite runs before app entry; minimal env read for dev server port only.
   server: {
     port: Number(process.env.PORT) || 3000,
   },
