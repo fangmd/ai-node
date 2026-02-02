@@ -10,6 +10,7 @@
   "dependencies": {
     "@ai-node/types": "workspace:*",
     "@ai-sdk/react": "^3.0.69",
+    "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "ai": "^6.0.67",
     "class-variance-authority": "^0.7.1",

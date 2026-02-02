@@ -1,8 +1,18 @@
+import { config } from "dotenv"
+import { resolve, dirname } from "path"
+import { fileURLToPath } from "url"
 import { PrismaMariaDb } from "@prisma/adapter-mariadb"
 import { PrismaClient } from "../generated/prisma/client.js"
 import { isDev } from "./env.js"
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
+config({ path: resolve(__dirname, "../../.env.example") })
+config({ path: resolve(__dirname, "../../.env") })
+
 function adapterConfigFromUrl(url: string) {
+  if (!url || !url.trim()) {
+    throw new Error("DATABASE_URL is required")
+  }
   const u = new URL(url)
   return {
     host: u.hostname,

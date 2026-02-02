@@ -43,6 +43,8 @@ console.log("process.env.OPENAI_BASE_URL", process.env.OPENAI_BASE_URL)
 console.log("process.env.OPENAI_API_KEY", process.env.OPENAI_API_KEY)
 console.log("process.env.PORT", process.env.PORT)
 console.log("process.env.NODE_ENV", process.env.NODE_ENV)
+console.log("process.env.DATABASE_URL", process.env.DATABASE_URL)
+
 console.log("isDev", isDev)
 
 if (!isDev) {
