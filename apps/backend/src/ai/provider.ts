@@ -1,5 +1,6 @@
 import { createDeepSeek } from "@ai-sdk/deepseek"
 import { createOpenAI } from "@ai-sdk/openai"
+import { getProxyFetch } from "./proxy-fetch"
 import { localTools } from "./tools"
 
 export const CONFIG_ERR_PREFIX = "Missing configuration: "
@@ -58,15 +59,16 @@ function useChatApi(baseURL: string, modelId: string): boolean {
 export function getProvider() {
   const kind = getProviderKind()
   const { baseURL, apiKey } = requireEnv(kind)
+  const fetchOption = getProxyFetch()
   if (kind === "deepseek") {
-    const deepseek = createDeepSeek({ baseURL, apiKey })
+    const deepseek = createDeepSeek({ baseURL, apiKey, fetch: fetchOption })
     return {
       kind,
       createModel: (modelId: string) => deepseek(modelId),
       tools: { ...localTools },
     }
   }
-  const openai = createOpenAI({ baseURL, apiKey })
+  const openai = createOpenAI({ baseURL, apiKey, fetch: fetchOption })
   return {
     kind,
     createModel: (modelId: string) =>
