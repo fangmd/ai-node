@@ -14,3 +14,13 @@ datasource db {
 model Placeholder {
   id Int @id @default(autoincrement())
 }
+
+model User {
+  id           BigInt   @id
+  username     String   @unique
+  passwordHash String
+  create_time  DateTime @default(now())
+  update_time  DateTime @updatedAt
+
+  @@map("user")
+}

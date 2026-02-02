@@ -11,11 +11,15 @@ import { serve } from "@hono/node-server"
 import { isDev } from "./common/env"
 import { success } from "./response"
 import ai from "./routes/ai"
+import auth from "./routes/auth"
+import { jwtAuth } from "./auth/middleware"
+
+type AuthVariables = { user: { id: string; username: string } }
 ;(BigInt.prototype as any).toJSON = function () {
   return this.toString()
 }
 
-const app = new Hono()
+const app = new Hono<{ Variables: AuthVariables }>()
 
 app.use(
   "*",
@@ -27,7 +31,13 @@ app.use(
 
 app.get("/", (c) => success(c, { message: "Hello from Hono" }))
 app.get("/health", (c) => success(c, { status: "ok" }))
+app.route("/api/auth", auth)
 app.route("/api/ai", ai)
+// 受保护路由示例：使用 jwtAuth 中间件，通过 c.get('user') 读取当前用户
+app.get("/api/me", jwtAuth, (c) => {
+  const user = c.get("user")
+  return success(c, { id: user.id, username: user.username })
+})
 
 console.log("process.env.OPENAI_BASE_URL", process.env.OPENAI_BASE_URL)
 console.log("process.env.OPENAI_API_KEY", process.env.OPENAI_API_KEY)
