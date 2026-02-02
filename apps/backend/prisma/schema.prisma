@@ -1,0 +1,16 @@
+// Prisma schema: MySQL datasource, env-based URL.
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// Placeholder model so client can be generated; extend with business tables later.
+model Placeholder {
+  id Int @id @default(autoincrement())
+}
