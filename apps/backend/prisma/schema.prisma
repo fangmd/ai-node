@@ -19,3 +19,24 @@ model User {
 
   @@map("user")
 }
+
+model Session {
+  id          BigInt   @id
+  user_id     BigInt
+  title       String?
+  create_time DateTime @default(now())
+  update_time DateTime @updatedAt
+
+  @@map("session")
+}
+
+model Message {
+  id          BigInt   @id
+  session_id  BigInt
+  role        String
+  parts       Json
+  create_time DateTime @default(now())
+  update_time DateTime @updatedAt
+
+  @@map("message")
+}
