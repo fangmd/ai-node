@@ -17,10 +17,10 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/login" element={<Login />} />
       <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<Home />} />
         <Route path="chat" element={<Chat />} />
         <Route path="me" element={<Me />} />
       </Route>

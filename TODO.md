@@ -17,13 +17,8 @@
 
 ### 高优先级
 
-- [ ] **Chat API 鉴权**：对 `/api/ai/chat` 使用 `jwtAuth`，前端 Chat 的 `DefaultChatTransport` 传入 `Authorization: Bearer <token>`
-- [ ] **生产环境 API base URL**：`lib/api.ts` 中根据 `VITE_API_ORIGIN` 拼接 base URL，避免生产部署到不同域名时请求打到前端
-
 ### 中优先级
 
-- [ ] **登出**：在 Me 页或全局导航增加「退出登录」按钮（`clearToken()` + 跳转 `/login`）
-- [ ] **首页按登录态展示**：有 token 时突出 Chat/个人信息，无 token 时突出登录/注册入口
 - [ ] **Chat 会话持久化（可选）**：后端存会话/消息（挂 user id），前端会话列表与恢复
 
 ### 按需

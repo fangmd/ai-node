@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { getMe, type MeData } from "@/lib/api"
+import { clearToken } from "@/lib/auth"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -10,8 +12,14 @@ import {
 } from "@/components/ui/card"
 
 export default function Me() {
+  const navigate = useNavigate()
   const [user, setUser] = useState<MeData | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const handleLogout = () => {
+    clearToken()
+    navigate("/login", { replace: true })
+  }
 
   useEffect(() => {
     getMe()
@@ -40,7 +48,7 @@ export default function Me() {
 
   return (
     <div className="max-w-md mx-auto space-y-4">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <h1 className="text-2xl font-bold">个人信息</h1>
         <Link to="/" className="text-primary underline">
           首页
@@ -48,6 +56,9 @@ export default function Me() {
         <Link to="/chat" className="text-primary underline">
           Chat
         </Link>
+        <Button variant="outline" onClick={handleLogout}>
+          退出登录
+        </Button>
       </div>
       <Card>
         <CardHeader>
