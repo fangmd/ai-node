@@ -1,12 +1,12 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
+import { getToken } from "@/lib/auth"
 
-const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? "http://localhost:3000"
-const CHAT_URL = `${API_ORIGIN}/api/ai/chat`
+const CHAT_URL = "/api/ai/chat"
 
 function MessageParts({
   parts,
@@ -87,9 +87,10 @@ function MessageParts({
           const ip =
             typeof p.output === "string"
               ? p.output
-              : p.output != null && typeof (p.output as { result?: string })?.result === "string"
-                ? (p.output as { result: string }).result
-                : null
+              : p.output != null &&
+                typeof (p.output as { result?: string })?.result === "string"
+              ? (p.output as { result: string }).result
+              : null
           if (hasResult && ip != null) {
             return (
               <div
@@ -110,9 +111,18 @@ function MessageParts({
 
 export default function Chat() {
   const [input, setInput] = useState("")
-  const { messages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({ api: CHAT_URL }),
-  })
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: CHAT_URL,
+        headers: (): Record<string, string> => {
+          const token = getToken()
+          return token ? { Authorization: `Bearer ${token}` } : {}
+        },
+      }),
+    []
+  )
+  const { messages, sendMessage, status, error } = useChat({ transport })
 
   const send = useCallback(() => {
     const text = input.trim()

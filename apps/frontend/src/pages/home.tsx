@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ApiResponse } from "@ai-node/types";
 
-const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? "http://localhost:3000";
 
 export default function Home() {
   const [message, setMessage] = useState<string>("...");
 
   useEffect(() => {
-    fetch(`${API_ORIGIN}/`)
+    fetch("/api/ai/hello")
       .then((r) => r.json() as Promise<ApiResponse<{ message?: string }>>)
       .then((d) => setMessage(d.data?.message ?? "ok"))
       .catch(() => setMessage("failed to reach API"));

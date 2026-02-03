@@ -46,6 +46,11 @@ pnpm build
 ## Env
 
 - **Backend** – `apps/backend/.env.example`: `PORT=3000`
-- **Frontend** – `apps/frontend/.env.example`: `VITE_API_ORIGIN=http://localhost:3000`
+- **Frontend** – 无需 `VITE_API_ORIGIN`；API 请求使用相对路径 `/api/...`，见下方代理说明。
 
 Copy to `.env` or `.env.local` and adjust as needed.
+
+## API 代理
+
+- **开发环境**：前端 Vite 已配置 `server.proxy`，将 `/api` 转发到后端（默认 `http://localhost:3000`），前端请求相对路径即可（如 `/api/ai/chat`、`/api/me`）。
+- **生产环境**：部署时由 nginx（或等效反向代理）将 `/api` 反向代理到后端服务，保证前后端同源访问 API。
