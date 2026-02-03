@@ -1,6 +1,6 @@
 ## 1. Monorepo setup
 
-- [x] 1.1 Add root package.json with scripts (build, dev, lint) and pnpm-workspace.yaml (apps/*)
+- [x] 1.1 Add root package.json with scripts (build, dev, lint) and pnpm-workspace.yaml (apps/\*)
 - [x] 1.2 Add tsconfig.base.json at root for apps to extend
 - [x] 1.3 Add turbo.json with pipeline for build, dev, lint
 - [x] 1.4 Add .gitignore for node_modules, dist, .turbo, .env.local

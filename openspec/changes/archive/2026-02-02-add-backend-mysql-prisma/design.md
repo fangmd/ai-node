@@ -42,10 +42,10 @@
 ## Risks / Trade-offs
 
 - **[Risk] 未配置 DATABASE_URL 时启动报错**  
-  →  mitigation：应用在首次使用 Prisma Client 时连接；可在入口或首次调用前做可选的健康检查（如 `prisma.$connect()`），失败时打日志并给出明确提示，不强制进程退出，以便无 DB 环境下仍能跑非 DB 相关功能（若需要可后续收紧）。
+  → mitigation：应用在首次使用 Prisma Client 时连接；可在入口或首次调用前做可选的健康检查（如 `prisma.$connect()`），失败时打日志并给出明确提示，不强制进程退出，以便无 DB 环境下仍能跑非 DB 相关功能（若需要可后续收紧）。
 
 - **[Risk] 网络或权限导致连不上目标库**  
-  →  mitigation：依赖运维正确配置 USER/PASSWORD 与白名单；文档与 `.env.example` 中说明格式与目标 host/port/db，便于排查。
+  → mitigation：依赖运维正确配置 USER/PASSWORD 与白名单；文档与 `.env.example` 中说明格式与目标 host/port/db，便于排查。
 
 - **[Trade-off] 暂无业务表**  
   → 当前仅建立连接与 client 能力，业务表与迁移在后续迭代中按 spec 增加。

@@ -1,37 +1,37 @@
-import axios from "axios"
-import { getToken, clearToken } from "./auth"
+import axios from 'axios';
+import { getToken, clearToken } from './auth';
 
-const LOGIN_PATH = "/api/auth/login"
+const LOGIN_PATH = '/api/auth/login';
 
-let onUnauthorized: (() => void) | null = null
+let onUnauthorized: (() => void) | null = null;
 
 export function setOnUnauthorized(fn: (() => void) | null): void {
-  onUnauthorized = fn
+  onUnauthorized = fn;
 }
 
 export const request = axios.create({
-  baseURL: "",
-  headers: { "Content-Type": "application/json" },
-})
+  baseURL: '',
+  headers: { 'Content-Type': 'application/json' },
+});
 
 request.interceptors.request.use((config) => {
-  const token = getToken()
+  const token = getToken();
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+    config.headers.Authorization = `Bearer ${token}`;
   }
-  return config
-})
+  return config;
+});
 
 request.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      clearToken()
-      const url = err.config?.url ?? ""
+      clearToken();
+      const url = err.config?.url ?? '';
       if (!url.includes(LOGIN_PATH)) {
-        onUnauthorized?.()
+        onUnauthorized?.();
       }
     }
-    return Promise.reject(err)
+    return Promise.reject(err);
   }
-)
+);

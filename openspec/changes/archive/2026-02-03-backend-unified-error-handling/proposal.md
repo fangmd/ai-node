@@ -22,9 +22,11 @@
 ## Capabilities
 
 ### New Capabilities
+
 - （无）
 
 ### Modified Capabilities
+
 - `backend-api`: 补充/强化“统一响应格式”的**错误处理要求**（失败响应必须携带正确 HTTP status；未捕获异常与 404 必须返回统一格式；提供全局错误处理入口，降低每个路由重复错误处理逻辑）
 
 ## Impact

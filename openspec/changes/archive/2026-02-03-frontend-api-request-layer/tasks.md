@@ -11,8 +11,8 @@
 
 ## 3. Migration and cleanup
 
-- [x] 3.1 Replace all usages of request/getMe/setOnUnauthorized from lib/api with api/* and lib axios (pages: me, login; components: ProtectedRoute; App or bootstrap: setOnUnauthorized)
-- [x] 3.2 Remove or refactor lib/api.ts to re-export from api/* and lib so no direct fetch/request remains
+- [x] 3.1 Replace all usages of request/getMe/setOnUnauthorized from lib/api with api/\* and lib axios (pages: me, login; components: ProtectedRoute; App or bootstrap: setOnUnauthorized)
+- [x] 3.2 Remove or refactor lib/api.ts to re-export from api/\* and lib so no direct fetch/request remains
 
 ## 4. Verification
 

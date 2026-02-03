@@ -12,9 +12,11 @@ AI chat should be able to call server-side tools (e.g. get server IP) so the mod
 ## Capabilities
 
 ### New Capabilities
+
 - (none)
 
 ### Modified Capabilities
+
 - **backend-ai-api**: Chat endpoint SHALL pass local tools to `streamText`. At least one tool `get-server-ip` SHALL be available and SHALL return `0.0.0.0`.
 
 ## Impact

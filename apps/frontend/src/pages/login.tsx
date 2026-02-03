@@ -1,76 +1,75 @@
-import { useState, FormEvent } from "react"
-import { useNavigate, Navigate } from "react-router-dom"
-import * as authApi from "@/api/auth"
-import { setToken, getToken } from "@/lib/auth"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, FormEvent } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import * as authApi from '@/api/auth';
+import { setToken, getToken } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-type Mode = "login" | "register"
+type Mode = 'login' | 'register';
 
 export default function Login() {
-  const navigate = useNavigate()
-  const [mode, setMode] = useState<Mode>("login")
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<Mode>('login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   if (getToken()) {
-    return <Navigate to="/chat" replace />
+    return <Navigate to="/chat" replace />;
   }
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError("")
-    const trimmedUser = username.trim()
-    const trimmedPass = password.trim()
+    e.preventDefault();
+    setError('');
+    const trimmedUser = username.trim();
+    const trimmedPass = password.trim();
     if (!trimmedUser || !trimmedPass) {
-      setError("请输入用户名和密码")
-      return
+      setError('请输入用户名和密码');
+      return;
     }
-    if (mode === "register") {
+    if (mode === 'register') {
       if (trimmedPass !== confirmPassword.trim()) {
-        setError("两次密码输入不一致")
-        return
+        setError('两次密码输入不一致');
+        return;
       }
     }
-    setLoading(true)
+    setLoading(true);
     try {
-      if (mode === "register") {
-        const reg = await authApi.register(trimmedUser, trimmedPass)
-        const data = reg.data
+      if (mode === 'register') {
+        const reg = await authApi.register(trimmedUser, trimmedPass);
+        const data = reg.data;
         if (data?.code === 200) {
-          const loginRes = await authApi.login(trimmedUser, trimmedPass)
-          const loginData = loginRes.data
+          const loginRes = await authApi.login(trimmedUser, trimmedPass);
+          const loginData = loginRes.data;
           if (loginData?.code === 200 && loginData?.data?.token) {
-            setToken(loginData.data.token)
-            navigate("/chat", { replace: true })
-            return
+            setToken(loginData.data.token);
+            navigate('/chat', { replace: true });
+            return;
           }
         }
-        setError(data?.msg ?? "注册失败")
+        setError(data?.msg ?? '注册失败');
       } else {
-        const res = await authApi.login(trimmedUser, trimmedPass)
-        const data = res.data
+        const res = await authApi.login(trimmedUser, trimmedPass);
+        const data = res.data;
         if (data?.code === 200 && data?.data?.token) {
-          setToken(data.data.token)
-          navigate("/chat", { replace: true })
-          return
+          setToken(data.data.token);
+          navigate('/chat', { replace: true });
+          return;
         }
-        setError(data?.msg ?? "登录失败")
+        setError(data?.msg ?? '登录失败');
       }
     } catch (err: unknown) {
       const msg =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response?: { data?: { msg?: string } } }).response?.data
-              ?.msg
-          : null
-      setError(msg ?? "网络错误，请重试")
+        err && typeof err === 'object' && 'response' in err
+          ? (err as { response?: { data?: { msg?: string } } }).response?.data?.msg
+          : null;
+      setError(msg ?? '网络错误，请重试');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -78,7 +77,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>{mode === "login" ? "登录" : "注册"}</CardTitle>
+          <CardTitle>{mode === 'login' ? '登录' : '注册'}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -102,11 +101,11 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="请输入密码"
-                autoComplete={mode === "register" ? "new-password" : "current-password"}
+                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
                 disabled={loading}
               />
             </div>
-            {mode === "register" && (
+            {mode === 'register' && (
               <div className="grid gap-2">
                 <Label htmlFor="confirmPassword">确认密码</Label>
                 <Input
@@ -126,28 +125,22 @@ export default function Login() {
               </p>
             )}
             <Button type="submit" disabled={loading}>
-              {loading
-                ? mode === "login"
-                  ? "登录中…"
-                  : "注册中…"
-                : mode === "login"
-                  ? "登录"
-                  : "注册"}
+              {loading ? (mode === 'login' ? '登录中…' : '注册中…') : mode === 'login' ? '登录' : '注册'}
             </Button>
             <button
               type="button"
               className="text-muted-foreground text-sm underline hover:text-foreground"
               onClick={() => {
-                setMode(mode === "login" ? "register" : "login")
-                setError("")
-                setConfirmPassword("")
+                setMode(mode === 'login' ? 'register' : 'login');
+                setError('');
+                setConfirmPassword('');
               }}
             >
-              {mode === "login" ? "没有账号？去注册" : "已有账号？去登录"}
+              {mode === 'login' ? '没有账号？去注册' : '已有账号？去登录'}
             </button>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

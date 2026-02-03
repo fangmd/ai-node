@@ -2,14 +2,14 @@
 
 ## 一、当前已实现能力
 
-| 模块 | 能力 |
-|------|------|
-| **Monorepo** | Turborepo + pnpm，backend (Hono) + frontend (React/Vite)，packages/types |
-| **后端基础** | CORS、统一响应格式、健康检查 `/health`、环境变量集中管理 |
-| **用户认证** | User 表（Prisma/MySQL）、注册/登录 API、JWT 签发与校验、`jwtAuth` 中间件、`GET /api/me` |
-| **AI 对话** | `POST /api/ai/chat` 流式 UI 消息、环境配置 Provider/Model（OpenAI、DeepSeek）、web_search、本地工具 `get_server_ip` |
-| **前端** | 首页、About、登录/注册页、Chat 页（useChat + 流式 + 工具展示）、个人信息页、路由保护（/chat、/me） |
-| **前端 API** | `request()` 带 Bearer、`getMe()`、401 时清 token 并跳转登录 |
+| 模块         | 能力                                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Monorepo** | Turborepo + pnpm，backend (Hono) + frontend (React/Vite)，packages/types                                            |
+| **后端基础** | CORS、统一响应格式、健康检查 `/health`、环境变量集中管理                                                            |
+| **用户认证** | User 表（Prisma/MySQL）、注册/登录 API、JWT 签发与校验、`jwtAuth` 中间件、`GET /api/me`                             |
+| **AI 对话**  | `POST /api/ai/chat` 流式 UI 消息、环境配置 Provider/Model（OpenAI、DeepSeek）、web_search、本地工具 `get_server_ip` |
+| **前端**     | 首页、About、登录/注册页、Chat 页（useChat + 流式 + 工具展示）、个人信息页、路由保护（/chat、/me）                  |
+| **前端 API** | `request()` 带 Bearer、`getMe()`、401 时清 token 并跳转登录                                                         |
 
 ---
 

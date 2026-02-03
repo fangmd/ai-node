@@ -57,11 +57,11 @@
 
 ## Risks / Trade-offs
 
-| 风险 / 权衡 | 缓解 |
-|------------|------|
+| 风险 / 权衡                        | 缓解                                                                                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | navigate 在非 React 上下文中不可用 | 401 处理放在使用 `useNavigate` 的封装层（如 hook 或提供 navigate 的 context），或通过 React Router 的 `createBrowserRouter`/router 对象以编程方式 navigate。 |
-| 多 tab 下 token 清除不同步 | 接受单 tab 行为；可选后续用 `storage` 事件同步清除，本阶段不实现。 |
-| 登录页与 chat 等样式不一致 | 明确使用 shadcn + 现有 Tailwind 主题，登录页仅复用 Card/Input/Button，不引入新设计系统。 |
+| 多 tab 下 token 清除不同步         | 接受单 tab 行为；可选后续用 `storage` 事件同步清除，本阶段不实现。                                                                                           |
+| 登录页与 chat 等样式不一致         | 明确使用 shadcn + 现有 Tailwind 主题，登录页仅复用 Card/Input/Button，不引入新设计系统。                                                                     |
 
 ## Migration Plan
 

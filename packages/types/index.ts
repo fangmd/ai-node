@@ -1,5 +1,5 @@
 export type ApiResponse<T = object> = {
-  code: number
-  msg: string
-  data: T
-}
+  code: number;
+  msg: string;
+  data: T;
+};

@@ -14,9 +14,11 @@
 ## Capabilities
 
 ### New Capabilities
+
 - 无（本次不新增独立能力，仅扩展现有 AI Chat 配置）
 
 ### Modified Capabilities
+
 - **backend-ai-api**：Chat 所用**模型标识**与**provider 类型**均由环境变量配置；在“OpenAI config via environment”相关需求中补充“模型标识”与“provider 选择”的 env 配置要求及示例（如 deepseek-chat + deepseek provider）。
 
 ## Impact

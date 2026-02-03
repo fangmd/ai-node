@@ -7,22 +7,26 @@
 ## Goals / Non-Goals
 
 **Goals:**
+
 - `/api/ai/chat` 要求有效 JWT，未鉴权返回 401。
 - 前端 Chat 的 DefaultChatTransport 请求头带 `Authorization: Bearer <token>`。
 - 前端所有 API 请求使用相对路径 `/api/...`；开发环境 Vite 代理 `/api` 到后端，生产环境 nginx 代理；移除 `VITE_API_ORIGIN` 及相关类型声明。
 
 **Non-Goals:**
+
 - 不新增登录/注册流程；不改变现有 JWT 签发与校验逻辑。
 - 不在本变更内实现会话持久化或会话列表。
 
 ## Decisions
 
 ### 1. Chat 路由鉴权方式
+
 - **选择**：在挂载 `/api/ai` 的 AI 子应用上，对 chat 路由（或整个 AI 组）使用现有 `jwtAuth` 中间件，与 `/api/me` 一致。
 - **备选**：单独为 chat 写中间件 → 不采纳，复用 `jwtAuth` 更简单。
 - **实现要点**：在 `apps/backend` 中，使 `POST /api/ai/chat` 经过 `jwtAuth`；401 时返回统一 JSON 格式（与现有后端一致）。
 
 ### 2. 前端 API 基地址与代理
+
 - **选择**：不再使用 `VITE_API_ORIGIN`。前端所有请求使用相对路径（如 `/api/ai/chat`、`/api/me`）。开发环境在 Vite 中配置 `server.proxy`: 将 `/api` 代理到后端（如 `http://localhost:3000`）；生产环境由 nginx 将 `/api` 反向代理到后端。
 - **备选**：保留 `VITE_API_ORIGIN` 仅生产使用 → 不采纳，与“统一去掉”目标一致地全部移除。
 - **实现要点**：
@@ -30,6 +34,7 @@
   - **Nginx**：生产配置示例 `location /api { proxy_pass http://backend_upstream; proxy_http_version 1.1; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; }`，具体 upstream 名与端口按部署环境填写。
 
 ### 3. Chat Transport 携带 Token
+
 - **选择**：在创建 DefaultChatTransport 时传入 `headers`（或等效选项），从现有 token 存储（如 `getToken()` from `lib/auth`) 读取并设置 `Authorization: Bearer <token>`；无 token 时可不带该头（后端将返回 401，前端可按现有逻辑处理）。
 - **实现要点**：仅修改 Chat 页或 transport 构造处，不改变 auth 库接口。
 

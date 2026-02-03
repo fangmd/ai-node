@@ -1,42 +1,36 @@
-import { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { getMe, type MeData } from "@/api/me"
-import { clearToken } from "@/lib/auth"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { getMe, type MeData } from '@/api/me';
+import { clearToken } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Me() {
-  const navigate = useNavigate()
-  const [user, setUser] = useState<MeData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate();
+  const [user, setUser] = useState<MeData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
-    clearToken()
-    navigate("/login", { replace: true })
-  }
+    clearToken();
+    navigate('/login', { replace: true });
+  };
 
   useEffect(() => {
     getMe()
       .then((res) => {
-        const d = res.data
-        setUser(d?.code === 200 && d?.data ? d.data : null)
+        const d = res.data;
+        setUser(d?.code === 200 && d?.data ? d.data : null);
       })
       .catch(() => setUser(null))
-      .finally(() => setLoading(false))
-  }, [])
+      .finally(() => setLoading(false));
+  }, []);
 
   if (loading) {
     return (
       <div className="max-w-md mx-auto">
         <p className="text-muted-foreground">加载中…</p>
       </div>
-    )
+    );
   }
 
   if (!user) {
@@ -47,7 +41,7 @@ export default function Me() {
           去登录
         </Link>
       </div>
-    )
+    );
   }
 
   return (
@@ -81,5 +75,5 @@ export default function Me() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

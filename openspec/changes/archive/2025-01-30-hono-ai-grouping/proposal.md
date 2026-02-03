@@ -12,9 +12,11 @@ Introduce a dedicated API group for AI-related features so that all AI endpoints
 ## Capabilities
 
 ### New Capabilities
+
 - `backend-ai-api`: AI API route group and initial hello endpoint; future AI endpoints will be added under this group.
 
 ### Modified Capabilities
+
 - `backend-api`: No requirement changes; we add new routes under existing Hono app and reuse existing response helpers and CORS.
 
 ## Impact

@@ -49,11 +49,11 @@
 
 ## Risks / Trade-offs
 
-| 风险 | 缓解 |
-|------|------|
-| 多组 env 导致配置复杂、易配错 | `.env.example` 中列出所有 provider 的变量及示例；错误信息明确写出缺失的变量名。 |
-| 某 provider 的 base URL / 模型名变更 | 文档与示例中说明常用值；默认模型随 provider 固定为推荐值。 |
-| 未来增加 provider 需改代码 | 采用小型 provider 注册表（如 `Record<AI_PROVIDER, { baseURLKey, apiKeyKey }>`），新增 provider 时只改配置表与文档。 |
+| 风险                                 | 缓解                                                                                                                |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| 多组 env 导致配置复杂、易配错        | `.env.example` 中列出所有 provider 的变量及示例；错误信息明确写出缺失的变量名。                                     |
+| 某 provider 的 base URL / 模型名变更 | 文档与示例中说明常用值；默认模型随 provider 固定为推荐值。                                                          |
+| 未来增加 provider 需改代码           | 采用小型 provider 注册表（如 `Record<AI_PROVIDER, { baseURLKey, apiKeyKey }>`），新增 provider 时只改配置表与文档。 |
 
 ## Migration Plan
 

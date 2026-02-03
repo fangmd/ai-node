@@ -1,0 +1,36 @@
+# 依赖与构建产物
+node_modules
+dist
+.turbo
+build
+*.min.js
+*.min.css
+
+# 锁文件（自动生成，勿格式化）
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# 环境与敏感文件
+.env
+.env.*
+
+# 生成/缓存目录
+generated
+**/generated
+coverage
+.next
+.nuxt
+
+# 规范/工作流文档（按需保留原样）
+openspec
+
+# IDE / 工具目录（可选：若希望参与格式化可删掉）
+.cursor
+.agents
+
+# Prisma 迁移（SQL 为自动生成，建议不格式化）
+**/prisma/migrations
+
+# Markdown 文档（不参与 Prettier 格式化）
+*.md

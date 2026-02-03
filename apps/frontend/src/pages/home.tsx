@@ -1,14 +1,14 @@
-import { Link, useNavigate } from "react-router-dom"
-import { clearToken } from "@/lib/auth"
-import { Button } from "@/components/ui/button"
+import { Link, useNavigate } from 'react-router-dom';
+import { clearToken } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    clearToken()
-    navigate("/login", { replace: true })
-  }
+    clearToken();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <div className="max-w-lg mx-auto space-y-6 py-8">
@@ -29,5 +29,5 @@ export default function Home() {
         </Button>
       </nav>
     </div>
-  )
+  );
 }

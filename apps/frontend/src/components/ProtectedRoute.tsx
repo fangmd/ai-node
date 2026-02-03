@@ -1,10 +1,10 @@
-import { Navigate, Outlet } from "react-router-dom"
-import { getToken } from "@/lib/auth"
+import { Navigate, Outlet } from 'react-router-dom';
+import { getToken } from '@/lib/auth';
 
 export function ProtectedRoute() {
-  const token = getToken()
+  const token = getToken();
   if (!token) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
-  return <Outlet />
+  return <Outlet />;
 }

@@ -1,61 +1,52 @@
-import { useState, useCallback, useMemo } from "react"
-import { Link } from "react-router-dom"
-import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport } from "ai"
-import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
-import { getToken } from "@/lib/auth"
+import { useState, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { getToken } from '@/lib/auth';
 
-const CHAT_URL = "/api/ai/chat"
+const CHAT_URL = '/api/ai/chat';
 
-function MessageParts({
-  parts,
-}: {
-  parts: Array<{ type: string; text?: string; [k: string]: unknown }>
-}) {
+function MessageParts({ parts }: { parts: Array<{ type: string; text?: string; [k: string]: unknown }> }) {
   return (
     <>
       {parts.map((part, i) => {
-        if (part.type === "text" && typeof part.text === "string") {
+        if (part.type === 'text' && typeof part.text === 'string') {
           return (
             <span key={i} className="whitespace-pre-wrap">
               {part.text}
             </span>
-          )
+          );
         }
-        if (part.type === "tool-web_search") {
+        if (part.type === 'tool-web_search') {
           const p = part as unknown as {
-            state: string
-            toolCallId: string
+            state: string;
+            toolCallId: string;
             output?: {
-              action?: { query?: string }
-              sources?: Array<{ type: string; url?: string; name?: string }>
-            }
-          }
+              action?: { query?: string };
+              sources?: Array<{ type: string; url?: string; name?: string }>;
+            };
+          };
           const isSearching =
-            p.state === "input-streaming" ||
-            p.state === "input-available" ||
-            (p.state !== "output-available" && p.state !== "result-available")
+            p.state === 'input-streaming' ||
+            p.state === 'input-available' ||
+            (p.state !== 'output-available' && p.state !== 'result-available');
           if (isSearching) {
             return (
-              <div
-                key={p.toolCallId}
-                className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1"
-              >
+              <div key={p.toolCallId} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
                 <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                 <span>正在搜索…</span>
               </div>
-            )
+            );
           }
-          if (p.state === "output-available" && p.output?.sources?.length) {
+          if (p.state === 'output-available' && p.output?.sources?.length) {
             return (
               <div key={p.toolCallId} className="mt-2 space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">
-                  引用来源
-                </p>
+                <p className="text-xs font-medium text-muted-foreground">引用来源</p>
                 <ul className="list-disc list-inside space-y-0.5 text-sm">
                   {p.output.sources.map((s, j) =>
-                    s.type === "url" && s.url ? (
+                    s.type === 'url' && s.url ? (
                       <li key={j}>
                         <a
                           href={s.url}
@@ -67,71 +58,66 @@ function MessageParts({
                         </a>
                       </li>
                     ) : (
-                      <li key={j}>{s.type === "api" ? s.name : null}</li>
+                      <li key={j}>{s.type === 'api' ? s.name : null}</li>
                     )
                   )}
                 </ul>
               </div>
-            )
+            );
           }
-          return null
+          return null;
         }
-        if (part.type === "tool-get_server_ip") {
+        if (part.type === 'tool-get_server_ip') {
           const p = part as unknown as {
-            state: string
-            toolCallId: string
-            output?: string
-          }
-          const hasResult =
-            p.state === "output-available" || p.state === "result-available"
+            state: string;
+            toolCallId: string;
+            output?: string;
+          };
+          const hasResult = p.state === 'output-available' || p.state === 'result-available';
           const ip =
-            typeof p.output === "string"
+            typeof p.output === 'string'
               ? p.output
-              : p.output != null &&
-                typeof (p.output as { result?: string })?.result === "string"
-              ? (p.output as { result: string }).result
-              : null
+              : p.output != null && typeof (p.output as { result?: string })?.result === 'string'
+                ? (p.output as { result: string }).result
+                : null;
           if (hasResult && ip != null) {
             return (
-              <div
-                key={p.toolCallId}
-                className="mt-1 text-sm text-muted-foreground"
-              >
+              <div key={p.toolCallId} className="mt-1 text-sm text-muted-foreground">
                 服务端 IP: <span className="font-mono">{ip}</span>
               </div>
-            )
+            );
           }
-          return null
+          return null;
         }
-        return null
+        return null;
       })}
     </>
-  )
+  );
 }
 
 export default function Chat() {
-  const [input, setInput] = useState("")
+  const [input, setInput] = useState('');
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: CHAT_URL,
         headers: (): Record<string, string> => {
-          const token = getToken()
-          return token ? { Authorization: `Bearer ${token}` } : {}
+          const token = getToken();
+          return token ? { Authorization: `Bearer ${token}` } : {};
         },
       }),
     []
-  )
-  const { messages, sendMessage, status, error } = useChat({ transport })
+  );
+  const { messages, sendMessage, status, error } = useChat({ transport });
 
   const send = useCallback(() => {
-    const text = input.trim()
-    if (!text || status !== "ready") return
-    sendMessage({ text })
-    setInput("")
-  }, [input, status, sendMessage])
+    const text = input.trim();
+    if (!text || status !== 'ready') return;
+    sendMessage({ text });
+    setInput('');
+  }, [input, status, sendMessage]);
 
-  console.log("messages", messages)
+  console.log('messages', messages);
 
   return (
     <div className="flex flex-col h-[80vh] max-w-2xl mx-auto">
@@ -146,20 +132,15 @@ export default function Chat() {
       </div>
       <div className="flex-1 overflow-y-auto border rounded p-4 space-y-3 bg-gray-50">
         {messages?.map((m) => (
-          <div
-            key={m.id}
-            className={m.role === "user" ? "text-right" : "text-left"}
-          >
-            <span className="font-medium">
-              {m.role === "user" ? "You" : "Assistant"}:{" "}
-            </span>
+          <div key={m.id} className={m.role === 'user' ? 'text-right' : 'text-left'}>
+            <span className="font-medium">{m.role === 'user' ? 'You' : 'Assistant'}: </span>
             <MessageParts parts={m.parts} />
           </div>
         ))}
-        {(status === "submitted" || status === "streaming") && (
+        {(status === 'submitted' || status === 'streaming') && (
           <div className="text-left text-muted-foreground flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-            <span>{status === "submitted" ? "等待回复…" : "正在输入…"}</span>
+            <span>{status === 'submitted' ? '等待回复…' : '正在输入…'}</span>
           </div>
         )}
       </div>
@@ -173,15 +154,15 @@ export default function Chat() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
+          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && send()}
           placeholder="Type a message..."
           className="flex-1 border rounded px-3 py-2"
-          disabled={status !== "ready"}
+          disabled={status !== 'ready'}
         />
-        <Button onClick={send} disabled={status !== "ready" || !input.trim()}>
+        <Button onClick={send} disabled={status !== 'ready' || !input.trim()}>
           Send
         </Button>
       </div>
     </div>
-  )
+  );
 }

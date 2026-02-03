@@ -11,7 +11,7 @@
 
 ## 3. Migrate application code to config
 
-- [x] 3.1 In `src/index.ts`: import config first, remove dotenv and process.env reads, remove debug console.log(process.env.*), use config for port and isDev
+- [x] 3.1 In `src/index.ts`: import config first, remove dotenv and process.env reads, remove debug console.log(process.env.\*), use config for port and isDev
 - [x] 3.2 In `src/common/prisma.ts`: remove dotenv, get DATABASE_URL from config
 - [x] 3.3 In `src/auth/jwt.ts`: use config.auth (JWT_SECRET, JWT_EXPIRES_IN) instead of env module
 - [x] 3.4 In `src/ai/provider.ts`: get AI_PROVIDER, baseURL, apiKey from config.ai; remove direct process.env reads
@@ -26,6 +26,6 @@
 
 ## 5. Cleanup and docs
 
-- [x] 5.1 Remove any remaining debug console.log(process.env.*) in backend
+- [x] 5.1 Remove any remaining debug console.log(process.env.\*) in backend
 - [ ] 5.2 Update `.env.example` comments to list required vs optional variables and align with schema
 - [x] 5.3 Run backend dev and build, confirm server starts and auth/AI/DB work without regression

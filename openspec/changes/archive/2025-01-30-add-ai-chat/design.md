@@ -21,7 +21,7 @@
 
 ## Decisions
 
-- **使用 ai-sdk**：采用 Vercel AI SDK（`ai` + `@ai-sdk/openai`），与 Hono 集成简单，类型友好。*Alternatives*：直接调 OpenAI HTTP API——未采纳，因 ai-sdk 封装了模型调用与错误，代码更简洁。
+- **使用 ai-sdk**：采用 Vercel AI SDK（`ai` + `@ai-sdk/openai`），与 Hono 集成简单，类型友好。_Alternatives_：直接调 OpenAI HTTP API——未采纳，因 ai-sdk 封装了模型调用与错误，代码更简洁。
 - **非流式优先**：首版仅实现非流式：请求体 → 一次完整回复 → `data` 中返回 assistant 消息内容。流式留作后续迭代。
 - **配置必须来自 env**：`OPENAI_BASE_URL`、`OPENAI_API_KEY` 从 `process.env` 读取；任一缺失时返回 503（或 400）并提示配置缺失，不 fallback 默认值。
 - **路由与封装**：在 `apps/backend/src/routes/ai.ts` 中新增 `POST /chat`；LLM 调用封装在单独模块（如 `src/ai/chat.ts` 或同目录下 `chat.ts`），便于复用与测试。

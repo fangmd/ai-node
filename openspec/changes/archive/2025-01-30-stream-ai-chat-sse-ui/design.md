@@ -7,10 +7,12 @@
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Backend chat endpoint streams assistant reply via SSE (`text/event-stream`).
 - Frontend has a chat page with input and message list; consumes SSE and renders streamed content incrementally.
 
 **Non-Goals:**
+
 - Backward compatibility for old JSON chat response.
 - Chat history persistence, multi-turn persistence across sessions, or auth.
 - Supporting non-SSE clients (e.g. keep a second JSON endpoint).
