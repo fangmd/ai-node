@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { z } from "zod"
-import { fail, success } from "../response.js"
+import { success } from "../response.js"
+import { AppError, ValidationError } from "../errors/index.js"
 import { register, login } from "../services/auth.service.js"
 
 const registerBody = z.object({
@@ -17,27 +18,35 @@ const auth = new Hono()
 auth.post("/register", async (c) => {
   const parsed = registerBody.safeParse(await c.req.json())
   if (!parsed.success) {
-    return fail(c, 400, "username and password are required")
+    const issues = parsed.error.issues.map((i) => ({
+      path: i.path as (string | number)[],
+      message: i.message,
+    }))
+    throw new AppError(ValidationError, "username and password are required", {
+      type: "validation",
+      issues,
+    })
   }
   const { username, password } = parsed.data
   const result = await register(username, password)
-  if (!result.success) {
-    return fail(c, result.code, result.msg)
-  }
-  return success(c, { username: result.username })
+  return success(c, result)
 })
 
 auth.post("/login", async (c) => {
   const parsed = loginBody.safeParse(await c.req.json())
   if (!parsed.success) {
-    return fail(c, 400, "username and password are required")
+    const issues = parsed.error.issues.map((i) => ({
+      path: i.path as (string | number)[],
+      message: i.message,
+    }))
+    throw new AppError(ValidationError, "username and password are required", {
+      type: "validation",
+      issues,
+    })
   }
   const { username, password } = parsed.data
   const result = await login(username, password)
-  if (!result.success) {
-    return fail(c, result.code, result.msg)
-  }
-  return success(c, { token: result.token })
+  return success(c, result)
 })
 
 export default auth

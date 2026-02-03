@@ -9,5 +9,5 @@ export function success<T = object>(c: Context, data?: T) {
 }
 
 export function fail(c: Context, code: number, msg: string, data?: object) {
-  return c.json({ code, msg, data: data ?? {} })
+  return c.json({ code, msg, data: data ?? {} }, 200)
 }
