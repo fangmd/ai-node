@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { getMe, type MeData } from "@/lib/api"
+import { getMe, type MeData } from "@/api/me"
 import { clearToken } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,7 +23,11 @@ export default function Me() {
 
   useEffect(() => {
     getMe()
-      .then(setUser)
+      .then((res) => {
+        const d = res.data
+        setUser(d?.code === 200 && d?.data ? d.data : null)
+      })
+      .catch(() => setUser(null))
       .finally(() => setLoading(false))
   }, [])
 

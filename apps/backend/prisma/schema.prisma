@@ -10,11 +10,6 @@ datasource db {
   provider = "mysql"
 }
 
-// Placeholder model so client can be generated; extend with business tables later.
-model Placeholder {
-  id Int @id @default(autoincrement())
-}
-
 model User {
   id           BigInt   @id
   username     String   @unique

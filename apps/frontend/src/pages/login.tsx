@@ -1,6 +1,6 @@
 import { useState, FormEvent } from "react"
 import { useNavigate, Navigate } from "react-router-dom"
-import { request } from "@/lib/api"
+import * as authApi from "@/api/auth"
 import { setToken, getToken } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -40,37 +40,12 @@ export default function Login() {
     setLoading(true)
     try {
       if (mode === "register") {
-        const res = await request("/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: trimmedUser,
-            password: trimmedPass,
-          }),
-        })
-        const data = (await res.json()) as {
-          code?: number
-          msg?: string
-          data?: { username?: string }
-        }
-        if (res.ok && data?.code === 200) {
-          const loginRes = await request("/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              username: trimmedUser,
-              password: trimmedPass,
-            }),
-          })
-          const loginData = (await loginRes.json()) as {
-            code?: number
-            data?: { token?: string }
-          }
-          if (
-            loginRes.ok &&
-            loginData?.code === 200 &&
-            loginData?.data?.token
-          ) {
+        const reg = await authApi.register(trimmedUser, trimmedPass)
+        const data = reg.data
+        if (data?.code === 200) {
+          const loginRes = await authApi.login(trimmedUser, trimmedPass)
+          const loginData = loginRes.data
+          if (loginData?.code === 200 && loginData?.data?.token) {
             setToken(loginData.data.token)
             navigate("/chat", { replace: true })
             return
@@ -78,28 +53,22 @@ export default function Login() {
         }
         setError(data?.msg ?? "注册失败")
       } else {
-        const res = await request("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: trimmedUser,
-            password: trimmedPass,
-          }),
-        })
-        const data = (await res.json()) as {
-          code?: number
-          msg?: string
-          data?: { token?: string }
-        }
-        if (res.ok && data?.code === 200 && data?.data?.token) {
+        const res = await authApi.login(trimmedUser, trimmedPass)
+        const data = res.data
+        if (data?.code === 200 && data?.data?.token) {
           setToken(data.data.token)
           navigate("/chat", { replace: true })
           return
         }
         setError(data?.msg ?? "登录失败")
       }
-    } catch {
-      setError("网络错误，请重试")
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { msg?: string } } }).response?.data
+              ?.msg
+          : null
+      setError(msg ?? "网络错误，请重试")
     } finally {
       setLoading(false)
     }

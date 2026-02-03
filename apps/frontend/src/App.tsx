@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { Routes, Route, useNavigate } from "react-router-dom"
-import { setOnUnauthorized } from "@/lib/api"
+import { setOnUnauthorized } from "@/lib/request"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import Home from "./pages/home"
 import About from "./pages/about"
