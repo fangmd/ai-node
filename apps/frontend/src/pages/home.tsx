@@ -24,9 +24,6 @@ export default function Home() {
         <Button asChild variant="secondary">
           <Link to="/settings">设置</Link>
         </Button>
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/about">About</Link>
-        </Button>
         <Button variant="outline" onClick={handleLogout} className="ml-auto">
           退出登录
         </Button>
