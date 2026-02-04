@@ -4,6 +4,7 @@ export type SessionItem = {
   id: string;
   title?: string;
   updateTime: string;
+  llmConfigId?: string;
 };
 
 type SessionState = {

@@ -10,12 +10,15 @@ import { SessionList } from '@/components/chat/session-list';
 import { getToken } from '@/lib/auth';
 import { sessionStore } from '@/stores/session';
 import { fetchSessions, fetchSessionMessages } from '@/api/sessions';
+import { fetchLlmConfigs, type LlmConfigItem } from '@/api/llm-config';
 
 const CHAT_URL = '/api/ai/chat';
 
 export default function Chat() {
   const [input, setInput] = useState('');
   const lastSendHadNoSession = useRef(false);
+  const [llmConfigs, setLlmConfigs] = useState<LlmConfigItem[]>([]);
+  const [selectedLlmConfigId, setSelectedLlmConfigId] = useState<string>('');
 
   const sessionList = useStore(sessionStore, (s) => s.sessionList);
   const currentSessionId = useStore(sessionStore, (s) => s.currentSessionId);
@@ -60,6 +63,24 @@ export default function Chat() {
   }, [setSessionList]);
 
   useEffect(() => {
+    fetchLlmConfigs().then((res) => {
+      const list = res.data?.code === 200 && Array.isArray(res.data.data) ? res.data.data : [];
+      setLlmConfigs(list);
+    });
+  }, []);
+
+  const defaultLlmConfigId = useMemo(() => {
+    const d = llmConfigs.find((x) => x.isDefault);
+    return d?.id ?? '';
+  }, [llmConfigs]);
+
+  const currentSessionLlmConfigId = useMemo(() => {
+    if (!currentSessionId) return '';
+    const s = sessionList.find((x) => x.id === currentSessionId);
+    return s?.llmConfigId ?? '';
+  }, [sessionList, currentSessionId]);
+
+  useEffect(() => {
     if (currentSessionId) {
       fetchSessionMessages(currentSessionId).then((res) => {
         const msgs = res.data?.code === 200 && Array.isArray(res.data.data) ? res.data.data : [];
@@ -70,13 +91,29 @@ export default function Chat() {
     }
   }, [currentSessionId, setMessages]);
 
+  // restore model selection when switching sessions
+  useEffect(() => {
+    if (currentSessionId) {
+      setSelectedLlmConfigId(currentSessionLlmConfigId || defaultLlmConfigId);
+    } else {
+      setSelectedLlmConfigId(defaultLlmConfigId);
+    }
+  }, [currentSessionId, currentSessionLlmConfigId, defaultLlmConfigId]);
+
   const send = useCallback(() => {
     const text = input.trim();
     if (!text || status !== 'ready') return;
     if (currentSessionId == null) lastSendHadNoSession.current = true;
-    sendMessage({ text }, { body: { sessionId: currentSessionId ?? undefined } });
+    const body: Record<string, unknown> = { sessionId: currentSessionId ?? undefined };
+    // new session must bind; existing session can switch binding by sending llmConfigId
+    if (!currentSessionId) {
+      body.llmConfigId = selectedLlmConfigId || undefined;
+    } else if (selectedLlmConfigId && selectedLlmConfigId !== currentSessionLlmConfigId) {
+      body.llmConfigId = selectedLlmConfigId;
+    }
+    sendMessage({ text }, { body });
     setInput('');
-  }, [input, status, sendMessage, currentSessionId]);
+  }, [input, status, sendMessage, currentSessionId, selectedLlmConfigId, currentSessionLlmConfigId]);
 
   const handleNewSession = useCallback(() => {
     clearCurrent();
@@ -107,6 +144,34 @@ export default function Chat() {
           <Link to="/me" className="text-blue-600 underline">
             个人信息
           </Link>
+          <Link to="/settings" className="text-blue-600 underline">
+            设置
+          </Link>
+        </div>
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-sm text-muted-foreground shrink-0">模型</label>
+          <select
+            className="border rounded px-2 py-1 text-sm bg-background min-w-0"
+            value={selectedLlmConfigId}
+            onChange={(e) => setSelectedLlmConfigId(e.target.value)}
+            disabled={llmConfigs.length === 0}
+          >
+            {llmConfigs.length === 0 ? (
+              <option value="">暂无配置</option>
+            ) : (
+              llmConfigs.map((x) => (
+                <option key={x.id} value={x.id}>
+                  {x.name}
+                  {x.isDefault ? '（默认）' : ''}
+                </option>
+              ))
+            )}
+          </select>
+          {llmConfigs.length === 0 && (
+            <Link to="/settings/llm" className="text-sm text-primary underline">
+              去设置
+            </Link>
+          )}
         </div>
         <div className="flex-1 overflow-y-auto border rounded p-4 space-y-3 bg-gray-50">
           {messages?.map((m) => (
@@ -132,9 +197,9 @@ export default function Chat() {
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && send()}
             placeholder="Type a message..."
             className="flex-1 border rounded px-3 py-2"
-            disabled={status !== 'ready'}
+            disabled={status !== 'ready' || llmConfigs.length === 0}
           />
-          <Button onClick={send} disabled={status !== 'ready' || !input.trim()}>
+          <Button onClick={send} disabled={status !== 'ready' || !input.trim() || llmConfigs.length === 0}>
             Send
           </Button>
         </div>

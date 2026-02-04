@@ -1,15 +1,18 @@
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from 'ai';
 import { getModel } from './model.js';
-import { CONFIG_ERR_PREFIX, getProvider } from './provider.js';
+import { createProvider, type ProviderKind } from './provider.js';
 
 export type ChatMessage = {
   role: 'user' | 'assistant' | 'system';
   content: string;
 };
 
-export async function streamChatFromUIMessages(uiMessages: UIMessage[]) {
-  const provider = getProvider();
-  const model = getModel(provider);
+export async function streamChatFromUIMessages(
+  uiMessages: UIMessage[],
+  llm: { provider: ProviderKind; baseURL: string; apiKey: string; modelId: string }
+) {
+  const provider = createProvider(llm.provider, llm.baseURL, llm.apiKey);
+  const model = getModel(provider, llm.modelId);
   const toolSet = provider.tools;
   const modelMessages = await convertToModelMessages(uiMessages, {
     tools: toolSet,
@@ -22,5 +25,3 @@ export async function streamChatFromUIMessages(uiMessages: UIMessage[]) {
     stopWhen: stepCountIs(5),
   });
 }
-
-export { CONFIG_ERR_PREFIX };

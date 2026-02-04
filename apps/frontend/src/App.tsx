@@ -7,6 +7,8 @@ import About from './pages/about';
 import Chat from './pages/chat';
 import Login from './pages/login';
 import Me from './pages/me';
+import Settings from './pages/settings';
+import LlmSettings from './pages/settings-llm';
 
 export default function App() {
   const navigate = useNavigate();
@@ -23,6 +25,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="chat" element={<Chat />} />
         <Route path="me" element={<Me />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="settings/llm" element={<LlmSettings />} />
       </Route>
     </Routes>
   );

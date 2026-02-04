@@ -21,6 +21,9 @@ export default function Home() {
         <Button asChild variant="secondary">
           <Link to="/me">个人信息</Link>
         </Button>
+        <Button asChild variant="secondary">
+          <Link to="/settings">设置</Link>
+        </Button>
         <Button asChild variant="ghost" size="sm">
           <Link to="/about">About</Link>
         </Button>

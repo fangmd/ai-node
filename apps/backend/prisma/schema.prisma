@@ -20,9 +20,27 @@ model User {
   @@map("user")
 }
 
+model LlmConfig {
+  id          BigInt   @id
+  user_id     BigInt
+  name        String
+  provider    String
+  base_url    String
+  model_id    String
+  api_key_enc String
+  is_default  Boolean  @default(false)
+  create_time DateTime @default(now())
+  update_time DateTime @updatedAt
+
+  @@unique([user_id, name])
+  @@index([user_id])
+  @@map("llm_config")
+}
+
 model Session {
   id          BigInt   @id
   user_id     BigInt
+  llm_config_id BigInt?
   title       String?
   create_time DateTime @default(now())
   update_time DateTime @updatedAt

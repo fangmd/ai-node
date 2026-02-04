@@ -5,6 +5,7 @@ export type SessionItem = {
   id: string;
   title?: string;
   updateTime: string;
+  llmConfigId?: string;
 };
 
 export type SessionMessage = {

@@ -17,13 +17,8 @@ const schema = z.object({
     jwtExpiresIn: z.string().default('7d'),
   }),
   database: z.object({ url: z.string().min(1, 'DATABASE_URL is required') }),
-  ai: z.object({
-    provider: z.enum(['openai', 'deepseek']).default('openai'),
-    model: z.string().optional(),
-    openaiBaseURL: z.string().optional(),
-    openaiApiKey: z.string().optional(),
-    deepseekBaseURL: z.string().optional(),
-    deepseekApiKey: z.string().optional(),
+  llm: z.object({
+    encryptionSecret: z.string().min(16, 'AI_KEY_ENCRYPTION_SECRET is required'),
   }),
   proxy: z.object({
     httpProxy: z.string().optional(),
@@ -37,14 +32,7 @@ function raw() {
     server: { port: p.PORT, nodeEnv: p.NODE_ENV },
     auth: { jwtSecret: p.JWT_SECRET, jwtExpiresIn: p.JWT_EXPIRES_IN },
     database: { url: p.DATABASE_URL },
-    ai: {
-      provider: (p.AI_PROVIDER ?? 'openai').toLowerCase(),
-      model: p.AI_MODEL?.trim(),
-      openaiBaseURL: p.OPENAI_BASE_URL?.trim(),
-      openaiApiKey: p.OPENAI_API_KEY?.trim(),
-      deepseekBaseURL: p.DEEPSEEK_BASE_URL?.trim(),
-      deepseekApiKey: p.DEEPSEEK_API_KEY?.trim(),
-    },
+    llm: { encryptionSecret: p.AI_KEY_ENCRYPTION_SECRET },
     proxy: { httpProxy: p.HTTP_PROXY?.trim(), httpsProxy: p.HTTPS_PROXY?.trim() },
   };
 }
@@ -54,18 +42,12 @@ function parse() {
   if (!parsed.success) {
     throw new Error(`Config validation failed: ${parsed.error.message}`);
   }
-  const { server, auth, database, ai, proxy } = parsed.data;
-  if (ai.provider === 'openai' && (!ai.openaiBaseURL || !ai.openaiApiKey)) {
-    throw new Error('When AI_PROVIDER=openai, OPENAI_BASE_URL and OPENAI_API_KEY are required');
-  }
-  if (ai.provider === 'deepseek' && (!ai.deepseekBaseURL || !ai.deepseekApiKey)) {
-    throw new Error('When AI_PROVIDER=deepseek, DEEPSEEK_BASE_URL and DEEPSEEK_API_KEY are required');
-  }
+  const { server, auth, database, llm, proxy } = parsed.data;
   return {
     server: { ...server, isDev: server.nodeEnv !== 'production' },
     auth,
     database,
-    ai,
+    llm,
     proxy,
   };
 }

@@ -1,11 +1,22 @@
 import { Hono } from 'hono';
 import type { UIMessage } from 'ai';
 import { jwtAuth, type AuthUser } from '../auth/middleware.js';
-import { streamChatFromUIMessages, CONFIG_ERR_PREFIX } from '../ai/chat.js';
-import { AppError, BadRequest, InternalError, NotFound, ServiceUnavailable } from '../errors/index.js';
-import { createSession, findSessionsByUserId, findSessionByIdAndUserId } from '../repositories/session.repository.js';
+import { streamChatFromUIMessages } from '../ai/chat.js';
+import { AppError, BadRequest, InternalError, NotFound } from '../errors/index.js';
+import {
+  createSession,
+  findSessionsByUserId,
+  findSessionByIdAndUserId,
+  updateSessionLlmConfigId,
+} from '../repositories/session.repository.js';
 import { createMessage, findMessagesBySessionId, updateMessageParts } from '../repositories/message.repository.js';
 import { success } from '../response.js';
+import {
+  findDefaultLlmConfigByUserId,
+  findLlmConfigByIdAndUserId,
+  type LlmProviderKind,
+} from '../repositories/llm-config.repository.js';
+import { decryptApiKey } from '../common/crypto.js';
 
 const ai = new Hono<{ Variables: { user: AuthUser } }>();
 
@@ -37,10 +48,11 @@ ai.get('/sessions', jwtAuth, async (c) => {
   const sessions = await findSessionsByUserId(userId);
   return success(
     c,
-    sessions.map((s: { id: bigint; title: string | null; update_time: Date }) => ({
+    sessions.map((s: { id: bigint; title: string | null; update_time: Date; llm_config_id: bigint | null }) => ({
       id: s.id,
       title: s.title ?? undefined,
       updateTime: s.update_time.toISOString(),
+      llmConfigId: s.llm_config_id != null ? String(s.llm_config_id) : undefined,
     }))
   );
 });
@@ -64,7 +76,7 @@ ai.get('/sessions/:sessionId/messages', jwtAuth, async (c) => {
 });
 
 ai.post('/chat', jwtAuth, async (c) => {
-  const body = await c.req.json<{ messages?: UIMessage[]; sessionId?: string }>();
+  const body = await c.req.json<{ messages?: UIMessage[]; sessionId?: string; llmConfigId?: string }>();
   const messages = body?.messages;
   if (!Array.isArray(messages) || messages.length === 0) {
     throw new AppError(BadRequest, 'messages array is required and must be non-empty');
@@ -74,16 +86,46 @@ ai.post('/chat', jwtAuth, async (c) => {
   const userId = BigInt(user.id);
   let sessionId: bigint;
   let isNewSession = false;
+  let sessionLlmConfigId: bigint | null = null;
 
   if (body.sessionId != null && body.sessionId !== '') {
     const session = await findSessionByIdAndUserId(BigInt(body.sessionId), userId);
     if (!session) throw new AppError(NotFound, 'session not found');
     sessionId = session.id;
+    sessionLlmConfigId = (session as { llm_config_id?: bigint | null }).llm_config_id ?? null;
   } else {
     const title = extractFirstUserMessageText(messages);
-    const session = await createSession(userId, title);
+    // new session: bind to request llmConfigId or user default
+    let bindId: bigint | null = null;
+    if (body.llmConfigId) {
+      const cfg = await findLlmConfigByIdAndUserId(BigInt(body.llmConfigId), userId);
+      if (!cfg) throw new AppError(NotFound, 'llm config not found');
+      bindId = cfg.id;
+    } else {
+      const def = await findDefaultLlmConfigByUserId(userId);
+      if (!def) throw new AppError(BadRequest, 'please configure a default llm model first');
+      bindId = def.id;
+    }
+    const session = await createSession(userId, title, bindId);
     sessionId = session.id;
     isNewSession = true;
+    sessionLlmConfigId = bindId;
+  }
+
+  // existing session: allow switching binding via request llmConfigId
+  if (!isNewSession && body.llmConfigId) {
+    const cfg = await findLlmConfigByIdAndUserId(BigInt(body.llmConfigId), userId);
+    if (!cfg) throw new AppError(NotFound, 'llm config not found');
+    await updateSessionLlmConfigId(sessionId, userId, cfg.id);
+    sessionLlmConfigId = cfg.id;
+  }
+
+  // binding补齐: if still null, use user default and persist binding
+  if (sessionLlmConfigId == null) {
+    const def = await findDefaultLlmConfigByUserId(userId);
+    if (!def) throw new AppError(BadRequest, 'please configure a default llm model first');
+    await updateSessionLlmConfigId(sessionId, userId, def.id);
+    sessionLlmConfigId = def.id;
   }
 
   const lastMessage = messages[messages.length - 1];
@@ -95,7 +137,14 @@ ai.post('/chat', jwtAuth, async (c) => {
   const assistantIdStr = String(assistantMsg.id);
 
   try {
-    const result = await streamChatFromUIMessages(messages);
+    const cfg = await findLlmConfigByIdAndUserId(sessionLlmConfigId, userId);
+    if (!cfg) throw new AppError(NotFound, 'llm config not found');
+    const result = await streamChatFromUIMessages(messages, {
+      provider: cfg.provider as LlmProviderKind,
+      baseURL: cfg.base_url,
+      apiKey: decryptApiKey(cfg.api_key_enc),
+      modelId: cfg.model_id,
+    });
     const response = result.toUIMessageStreamResponse({
       originalMessages: messages,
       generateMessageId: () => assistantIdStr,
@@ -109,7 +158,6 @@ ai.post('/chat', jwtAuth, async (c) => {
     return response;
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'chat failed';
-    if (msg.startsWith(CONFIG_ERR_PREFIX)) throw new AppError(ServiceUnavailable, msg, undefined, e);
     throw new AppError(InternalError, msg, undefined, e);
   }
 });

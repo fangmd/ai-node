@@ -1,28 +1,4 @@
-# backend-ai-api
-
-## Purpose
-
-AI API route group under `/api/ai`: Hono sub-app mount and initial hello endpoint; future AI endpoints (chat, completions, etc.) live under this group.
-
-## Requirements
-
-### Requirement: AI route group
-
-The backend SHALL expose an AI API route group at path prefix `/api/ai`. All AI-related endpoints SHALL be mounted under this prefix via a Hono sub-app (e.g. `app.route('/api/ai', ai)`).
-
-#### Scenario: AI group mounted
-
-- **WHEN** the backend is running
-- **THEN** requests to paths under `/api/ai/*` are handled by the AI route group
-
-### Requirement: AI hello endpoint
-
-The backend SHALL provide `GET /api/ai/hello` that returns a success response using the existing unified response format (code 200, msg "success", data).
-
-#### Scenario: hello returns success
-
-- **WHEN** a client sends `GET /api/ai/hello`
-- **THEN** the response body is `{ "code": 200, "msg": "success", "data": <object> }` and HTTP status is 200
+## MODIFIED Requirements
 
 ### Requirement: Chat endpoint
 
@@ -68,34 +44,6 @@ The endpoint SHALL convert UIMessages to model messages (e.g. via `convertToMode
 - **WHEN** a client sends `POST /api/ai/chat` and the user has no usable LLM config (no bound config and no default config)
 - **THEN** the backend SHALL respond with an error indicating the user must configure an LLM config before chatting
 
-### Requirement: DeepSeek provider dependency
-
-The backend SHALL use the official DeepSeek provider from the AI SDK when `AI_PROVIDER=deepseek`. The project SHALL add the dependency with `pnpm add @ai-sdk/deepseek` (in the backend app). The chat endpoint SHALL use `@ai-sdk/deepseek` to create the DeepSeek language model instance, not a generic OpenAI-compatible client with a DeepSeek base URL.
-
-#### Scenario: DeepSeek provider package installed
-
-- **WHEN** the backend is built or installed
-- **THEN** `@ai-sdk/deepseek` SHALL be listed as a dependency in the backend package (e.g. `apps/backend/package.json`)
-
-#### Scenario: DeepSeek selected uses official provider
-
-- **WHEN** `AI_PROVIDER=deepseek` and DeepSeek config is set and a client sends `POST /api/ai/chat`
-- **THEN** the chat endpoint SHALL call the LLM via the provider created from `@ai-sdk/deepseek` (e.g. `createDeepSeek` or equivalent)
-
-### Requirement: Local tools
-
-The backend SHALL implement **local tools** (server-side tools callable by the model via the chat stream) under the **ai/tools** directory (e.g. `apps/backend/src/ai/tools/`). Local tools SHALL be registered with `streamText` together with provider tools (e.g. web_search). At least one local tool SHALL be available: **get_server_ip**, which returns the current server IP address.
-
-#### Scenario: get_server_ip returns fixed value
-
-- **WHEN** the model invokes the get_server_ip tool during a chat
-- **THEN** the tool SHALL return the value `0.0.0.0` (fixed; no real network lookup)
-
-#### Scenario: local tools under ai/tools
-
-- **WHEN** the backend implements local tools
-- **THEN** tool definitions SHALL live under the ai/tools directory (e.g. `src/ai/tools/` with an index or per-tool modules)
-
 ### Requirement: Sessions endpoint
 
 The backend SHALL provide `GET /api/ai/sessions` that returns the current user's chat sessions. The endpoint SHALL require a valid JWT (via `jwtAuth` middleware). The response SHALL contain only sessions whose user_id matches the authenticated user, ordered by update_time descending. Each session item SHALL include: id (string, Session Snowflake id), title (optional string), updateTime (ISO string), and llmConfigId (optional string, session-bound LLM config id).
@@ -108,30 +56,9 @@ The backend SHALL provide `GET /api/ai/sessions` that returns the current user's
 - **WHEN** a client sends `GET /api/ai/sessions` with valid JWT
 - **THEN** each returned session item includes `llmConfigId` when the session is bound to a config, otherwise omits it (or returns null)
 
-### Requirement: Session messages endpoint
+## REMOVED Requirements
 
-The backend SHALL provide `GET /api/ai/sessions/:sessionId/messages` that returns messages for a session. The endpoint SHALL require a valid JWT and SHALL verify that the session belongs to the authenticated user (user_id match). If the session does not exist or belongs to a different user, the backend SHALL respond with an error (e.g. 403 or 404). Messages SHALL be returned in order (e.g. by create_time ascending), each with id (string, Message Snowflake id), role, and parts compatible with AI SDK UIMessage.
+### Requirement: OpenAI config via environment
+**Reason**: Chat LLM configuration is no longer sourced from process env defaults; it is sourced from user-owned LLM configs and the session binding (`llmConfigId`).
+**Migration**: Configure at least one LLM config via the new settings LLM config APIs/UI and set a default; clients SHOULD ensure chats are created with a bound `llmConfigId` or rely on user default binding.
 
-#### Scenario: get session messages returns ordered UIMessage-shaped list
-
-- **WHEN** a client sends `GET /api/ai/sessions/:sessionId/messages` with valid JWT and the session belongs to the user
-- **THEN** the response SHALL contain messages for that session in order (e.g. create_time ascending), each with id (string), role, and parts compatible with AI SDK UIMessage
-
-#### Scenario: get session messages rejects wrong user
-
-- **WHEN** a client sends `GET /api/ai/sessions/:sessionId/messages` and the session exists but user_id does not match the authenticated user
-- **THEN** the backend SHALL respond with an error (e.g. 403 or 404)
-
-### Requirement: Chat endpoint authentication
-
-The backend SHALL require a valid JWT for `POST /api/ai/chat`. The route SHALL use the existing `jwtAuth` middleware (or equivalent). Requests without a valid `Authorization: Bearer <token>` or with an invalid/expired token SHALL receive HTTP 401 with a response body in the existing unified error format (e.g. code, msg, data).
-
-#### Scenario: chat returns 200 when authenticated
-
-- **WHEN** a client sends `POST /api/ai/chat` with header `Authorization: Bearer <valid-jwt>` and a valid body
-- **THEN** the request is processed and the response is a UI message stream with HTTP status 200 (subject to other chat requirements)
-
-#### Scenario: chat returns 401 when not authenticated
-
-- **WHEN** a client sends `POST /api/ai/chat` without `Authorization` or with an invalid/expired token
-- **THEN** the backend SHALL respond with HTTP 401 and a JSON body in the unified error format (e.g. code 401, msg indicating unauthorized)

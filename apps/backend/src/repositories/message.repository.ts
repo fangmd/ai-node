@@ -11,7 +11,7 @@ export function createMessage(sessionId: bigint, role: string, parts: unknown) {
 export function updateMessageParts(id: bigint, parts: unknown) {
   return prisma.message.update({
     where: { id },
-    data: { parts },
+    data: { parts: parts as any },
   });
 }
 

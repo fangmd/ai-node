@@ -1,10 +1,4 @@
-# session-list-ui
-
-## Purpose
-
-Frontend session list and new-session entry: display current user's chat sessions, switch session and load its messages, create new session on first message send; state managed with zustand (^5.0.9).
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Session list display
 
@@ -57,3 +51,4 @@ The frontend SHALL allow the user to select a session from the list. When a sess
 #### Scenario: chat request includes session id when session selected
 - **WHEN** the user has a session selected (currentSessionId is not null) and sends a message
 - **THEN** the frontend SHALL send `POST /api/ai/chat` with body including sessionId equal to currentSessionId
+

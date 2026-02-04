@@ -54,6 +54,9 @@ export default function Me() {
         <Link to="/chat" className="text-primary underline">
           Chat
         </Link>
+        <Link to="/settings" className="text-primary underline">
+          设置
+        </Link>
         <Button variant="outline" onClick={handleLogout}>
           退出登录
         </Button>

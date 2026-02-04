@@ -9,6 +9,7 @@ import { fail, success } from './response';
 import { InternalError, isAppError, NotFound, ValidationError } from './errors';
 import ai from './routes/ai';
 import auth from './routes/auth';
+import settings from './routes/settings';
 import { jwtAuth } from './auth/middleware';
 import { requestLogging } from './middleware/logging';
 
@@ -33,6 +34,7 @@ app.get('/', (c) => success(c, { message: 'Hello from Hono' }));
 app.get('/health', (c) => success(c, { status: 'ok' }));
 app.route('/api/auth', auth);
 app.route('/api/ai', ai);
+app.route('/api/settings', settings);
 // 受保护路由示例：使用 jwtAuth 中间件，通过 c.get('user') 读取当前用户
 app.get('/api/me', jwtAuth, (c) => {
   const user = c.get('user');
