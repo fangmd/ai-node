@@ -38,7 +38,7 @@ ai.get('/sessions', jwtAuth, async (c) => {
   return success(
     c,
     sessions.map((s: { id: bigint; title: string | null; update_time: Date }) => ({
-      id: String(s.id),
+      id: s.id,
       title: s.title ?? undefined,
       updateTime: s.update_time.toISOString(),
     }))
@@ -56,7 +56,7 @@ ai.get('/sessions/:sessionId/messages', jwtAuth, async (c) => {
   return success(
     c,
     messages.map((m: { id: bigint; role: string; parts: unknown }) => ({
-      id: String(m.id),
+      id: m.id,
       role: m.role,
       parts: m.parts as unknown[],
     }))

@@ -1,7 +1,10 @@
 import axios from 'axios';
+import JSONBig from 'json-bigint';
 import { getToken, clearToken } from './auth';
 
 const LOGIN_PATH = '/api/auth/login';
+
+const jsonParser = JSONBig({ storeAsString: true });
 
 let onUnauthorized: (() => void) | null = null;
 
@@ -12,6 +15,16 @@ export function setOnUnauthorized(fn: (() => void) | null): void {
 export const request = axios.create({
   baseURL: '',
   headers: { 'Content-Type': 'application/json' },
+  transformResponse: [
+    (data: unknown) => {
+      if (typeof data !== 'string') return data;
+      try {
+        return jsonParser.parse(data);
+      } catch {
+        return data;
+      }
+    },
+  ],
 });
 
 request.interceptors.request.use((config) => {

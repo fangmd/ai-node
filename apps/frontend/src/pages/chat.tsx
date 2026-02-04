@@ -41,7 +41,8 @@ export default function Chat() {
     messages: [],
     onFinish: async ({ isError }) => {
       if (lastSendHadNoSession.current && !isError) {
-        const list = await fetchSessions();
+        const res = await fetchSessions();
+        const list = res.data?.code === 200 && Array.isArray(res.data.data) ? res.data.data : [];
         if (list.length > 0) {
           setSessionList(list);
           setCurrentSession(list[0].id);
@@ -52,12 +53,18 @@ export default function Chat() {
   });
 
   useEffect(() => {
-    fetchSessions().then(setSessionList);
+    fetchSessions().then((res) => {
+      const list = res.data?.code === 200 && Array.isArray(res.data.data) ? res.data.data : [];
+      setSessionList(list);
+    });
   }, [setSessionList]);
 
   useEffect(() => {
     if (currentSessionId) {
-      fetchSessionMessages(currentSessionId).then((msgs) => setMessages(msgs as Parameters<typeof setMessages>[0]));
+      fetchSessionMessages(currentSessionId).then((res) => {
+        const msgs = res.data?.code === 200 && Array.isArray(res.data.data) ? res.data.data : [];
+        setMessages(msgs as Parameters<typeof setMessages>[0]);
+      });
     } else {
       setMessages([]);
     }
