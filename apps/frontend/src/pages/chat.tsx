@@ -9,15 +9,14 @@ import { Message } from '@/components/chat/message';
 import { SessionList } from '@/components/chat/session-list';
 import { getToken } from '@/lib/auth';
 import { sessionStore } from '@/stores/session';
+import { llmConfigStore } from '@/stores/llm-config';
 import { fetchSessions, fetchSessionMessages } from '@/api/sessions';
-import { fetchLlmConfigs, type LlmConfigItem } from '@/api/llm-config';
 
 const CHAT_URL = '/api/ai/chat';
 
 export default function Chat() {
   const [input, setInput] = useState('');
   const lastSendHadNoSession = useRef(false);
-  const [llmConfigs, setLlmConfigs] = useState<LlmConfigItem[]>([]);
   const [selectedLlmConfigId, setSelectedLlmConfigId] = useState<string>('');
 
   const sessionList = useStore(sessionStore, (s) => s.sessionList);
@@ -26,6 +25,9 @@ export default function Chat() {
   const setSessionList = useStore(sessionStore, (s) => s.setSessionList);
   const addSession = useStore(sessionStore, (s) => s.addSession);
   const clearCurrent = useStore(sessionStore, (s) => s.clearCurrent);
+
+  const llmConfigs = useStore(llmConfigStore, (s) => s.llmConfigs);
+  const refreshLlmConfigs = useStore(llmConfigStore, (s) => s.refresh);
 
   const transport = useMemo(
     () =>
@@ -63,11 +65,10 @@ export default function Chat() {
   }, [setSessionList]);
 
   useEffect(() => {
-    fetchLlmConfigs().then((res) => {
-      const list = res.data?.code === 200 && Array.isArray(res.data.data) ? res.data.data : [];
-      setLlmConfigs(list);
+    refreshLlmConfigs().catch(() => {
+      // Error handling is done in store
     });
-  }, []);
+  }, [refreshLlmConfigs]);
 
   const defaultLlmConfigId = useMemo(() => {
     const d = llmConfigs.find((x) => x.isDefault);
