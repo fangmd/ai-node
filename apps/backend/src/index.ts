@@ -4,11 +4,13 @@ import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
 import { ZodError } from 'zod';
 import { config } from './common/env';
+import { logger } from './common/logger';
 import { fail, success } from './response';
 import { InternalError, isAppError, NotFound, ValidationError } from './errors';
 import ai from './routes/ai';
 import auth from './routes/auth';
 import { jwtAuth } from './auth/middleware';
+import { requestLogging } from './middleware/logging';
 
 type AuthVariables = { user: { id: string; username: string } };
 (BigInt.prototype as any).toJSON = function () {
@@ -24,6 +26,8 @@ app.use(
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   })
 );
+
+app.use('*', requestLogging);
 
 app.get('/', (c) => success(c, { message: 'Hello from Hono' }));
 app.get('/health', (c) => success(c, { status: 'ok' }));
@@ -50,7 +54,7 @@ app.onError((err, c) => {
     });
   }
   const msg = config.server.isDev && err instanceof Error ? err.message : InternalError.msg;
-  if (config.server.isDev) console.error(err);
+  if (config.server.isDev) logger.error({ err }, msg);
   return fail(c, InternalError.code, msg);
 });
 
@@ -58,7 +62,7 @@ app.notFound((c) => fail(c, NotFound.code, NotFound.msg));
 
 if (!config.server.isDev) {
   serve({ fetch: app.fetch, port: config.server.port }, (info) => {
-    console.log(`Server running at http://localhost:${info.port}`);
+    logger.info(`Server running at http://localhost:${info.port}`);
   });
 }
 

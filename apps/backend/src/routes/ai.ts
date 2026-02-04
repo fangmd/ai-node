@@ -95,15 +95,13 @@ ai.post('/chat', jwtAuth, async (c) => {
   const assistantIdStr = String(assistantMsg.id);
 
   try {
-    const result = await streamChatFromUIMessages(messages, {
-      onFinish: async (event) => {
-        await updateMessageParts(assistantMsg.id, event.content ?? []);
-      },
-      generateMessageId: () => assistantIdStr,
-    });
+    const result = await streamChatFromUIMessages(messages);
     const response = result.toUIMessageStreamResponse({
       originalMessages: messages,
       generateMessageId: () => assistantIdStr,
+      onFinish: async ({ responseMessage }) => {
+        await updateMessageParts(assistantMsg.id, responseMessage.parts ?? []);
+      },
     });
     if (isNewSession) {
       response.headers.set('X-Session-Id', String(sessionId));

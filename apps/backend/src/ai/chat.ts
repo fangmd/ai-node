@@ -7,12 +7,7 @@ export type ChatMessage = {
   content: string;
 };
 
-export type StreamChatOptions = {
-  onFinish?: (event: { content: unknown[] }) => void | Promise<void>;
-  generateMessageId?: () => string;
-};
-
-export async function streamChatFromUIMessages(uiMessages: UIMessage[], options?: StreamChatOptions) {
+export async function streamChatFromUIMessages(uiMessages: UIMessage[]) {
   const provider = getProvider();
   const model = getModel(provider);
   const toolSet = provider.tools;
@@ -25,11 +20,6 @@ export async function streamChatFromUIMessages(uiMessages: UIMessage[], options?
     tools: toolSet,
     messages: modelMessages,
     stopWhen: stepCountIs(5),
-    onFinish: options?.onFinish
-      ? (event) => {
-          void Promise.resolve(options.onFinish!({ content: event.content ?? [] })).catch(() => {});
-        }
-      : undefined,
   });
 }
 

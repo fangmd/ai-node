@@ -1,6 +1,7 @@
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from '../generated/prisma/client.js';
 import { config } from './env.js';
+import { logger } from './logger.js';
 
 function adapterConfigFromUrl(url: string) {
   if (!url || !url.trim()) {
@@ -20,5 +21,32 @@ function adapterConfigFromUrl(url: string) {
 const adapter = new PrismaMariaDb(adapterConfigFromUrl(config.database.url));
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
+const client =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    adapter,
+    log: [
+      { level: 'query', emit: 'event' },
+      { level: 'error', emit: 'event' },
+      { level: 'warn', emit: 'event' },
+      { level: 'info', emit: 'event' },
+    ],
+  });
+
+if (!globalForPrisma.prisma) {
+  type ClientWithLog = PrismaClient<'query' | 'error' | 'warn' | 'info'>;
+  const c = client as ClientWithLog;
+  c.$on('query', (e) =>
+    logger.debug(
+      { query: e.query, params: e.params, duration_ms: e.duration },
+      'prisma query',
+    ),
+  );
+  c.$on('error', (e) => logger.error({ message: e.message }, 'prisma error'));
+  c.$on('warn', (e) => logger.warn({ message: e.message }, 'prisma warn'));
+  c.$on('info', (e) => logger.info({ message: e.message }, 'prisma info'));
+}
+
+export const prisma = client;
+
 if (config.server.isDev) globalForPrisma.prisma = prisma;
