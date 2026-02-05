@@ -22,6 +22,7 @@
     "ai": "^6.0.67",
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.3",
+    "gray-matter": "^4.0.3",
     "hono": "^4.11.7",
     "jose": "^6.0.11",
     "nodejs-snowflake": "^2.0.1",

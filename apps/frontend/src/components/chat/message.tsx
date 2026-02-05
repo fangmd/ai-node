@@ -93,6 +93,35 @@ function MessageParts({ parts }: { parts: MessagePart[] }) {
           }
           return null;
         }
+        if (part.type === 'tool-load_skill') {
+          const p = part as unknown as {
+            state: string;
+            toolCallId: string;
+            input?: { name?: string };
+            output?: string;
+          };
+          const isLoading =
+            p.state === 'input-streaming' ||
+            p.state === 'input-available' ||
+            (p.state !== 'output-available' && p.state !== 'result-available');
+          const skillName = p.input?.name;
+          if (isLoading) {
+            return (
+              <div key={p.toolCallId} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
+                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                <span>{skillName ? `正在加载技能「${skillName}」…` : '正在加载技能…'}</span>
+              </div>
+            );
+          }
+          if (p.state === 'output-available' || p.state === 'result-available') {
+            return (
+              <div key={p.toolCallId} className="mt-1 text-sm text-muted-foreground">
+                已加载技能: <span className="font-medium">{skillName ?? '—'}</span>
+              </div>
+            );
+          }
+          return null;
+        }
         return null;
       })}
     </>
