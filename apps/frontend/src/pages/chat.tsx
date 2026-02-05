@@ -195,7 +195,13 @@ export default function Chat() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && send()}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' || e.shiftKey) return;
+              // IME composing (e.g. Chinese pinyin selection) should not trigger send
+              if (e.nativeEvent.isComposing || (e as unknown as { keyCode?: number }).keyCode === 229) return;
+              e.preventDefault();
+              send();
+            }}
             placeholder="Type a message..."
             className="flex-1 border rounded px-3 py-2"
             disabled={status !== 'ready' || llmConfigs.length === 0}
