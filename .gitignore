@@ -10,3 +10,4 @@ dist
 generated
 
 my-docker-compose.yml
+prod-my-docker-compose.yml
