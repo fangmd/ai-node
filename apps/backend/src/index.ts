@@ -1,4 +1,7 @@
 import './common/env';
+import { execSync } from 'node:child_process';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
@@ -63,6 +66,19 @@ app.onError((err, c) => {
 });
 
 app.notFound((c) => fail(c, NotFound.code, NotFound.msg));
+
+function runMigrate() {
+  const backendRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+  logger.info('Running prisma migrate deploy...');
+  execSync('npx prisma migrate deploy', {
+    cwd: backendRoot,
+    stdio: 'inherit',
+    env: process.env,
+  });
+  logger.info('Prisma migrate deploy done');
+}
+
+runMigrate();
 
 if (!config.server.isDev) {
   serve({ fetch: app.fetch, port: config.server.port }, (info) => {

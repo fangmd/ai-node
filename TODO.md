@@ -34,7 +34,7 @@
 ### 已规划功能
 
 - [x] **支持 agent skills**：Agent 支持 skills 能力
-- [ ] **docker 部署前端和后端**：前端使用 nginx 反向代理，后端使用 pm2 启动
+- [x] **docker 部署前端和后端**：前端使用 nginx 反向代理，后端
 
 ---
 
