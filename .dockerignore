@@ -27,3 +27,6 @@ generated
 # Docs and spec (reduce context size)
 openspec
 *.md
+# Include backend agent skills (SKILL.md)
+!apps/backend/skills/
+!apps/backend/skills/**/*.md

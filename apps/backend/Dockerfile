@@ -32,6 +32,7 @@ COPY packages/types ./packages/types
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder /app/apps/backend/src/generated ./apps/backend/src/generated
 COPY --from=builder /app/apps/backend/prisma ./apps/backend/prisma
+COPY --from=builder /app/apps/backend/skills ./skills
 
 WORKDIR /app/apps/backend
 ENV NODE_ENV=production

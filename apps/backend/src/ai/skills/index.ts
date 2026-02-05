@@ -1,14 +1,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 
 export type SkillInfo = { name: string; description: string; location: string };
 
 const SKILL_FILENAME = 'SKILL.md';
 
-/** 技能根目录：约定从 backend 包根目录下的 skills/（运行时应以 backend 为 cwd） */
+/** 技能根目录：相对当前模块所在目录解析，兼容 bundle（dist/）与开发（src/ai/skills/），不依赖 process.cwd */
 export function getSkillsRoot(): string {
-  return path.join(process.cwd(), 'skills');
+  const dir = path.dirname(fileURLToPath(import.meta.url));
+  // 生产 bundle 在 dist/index.js，skills 在 dist/../skills
+  const fromDist = path.join(dir, '..', 'skills');
+  // 开发时在 src/ai/skills/index.ts，skills 在 ../../../skills
+  const fromSrc = path.join(dir, '..', '..', '..', 'skills');
+  // 开发时 fromDist 会错误解析为 src/ai/skills（与 dir 同），需按是否在 dist 下区分
+  const inDist = dir.includes(`${path.sep}dist${path.sep}`) || dir.endsWith(`${path.sep}dist`);
+  return inDist ? fromDist : fromSrc;
 }
 
 function findSkillFiles(dir: string): string[] {
@@ -50,6 +58,7 @@ function ensureCache(): Record<string, SkillInfo> {
     }
   }
   cache = map;
+  const count = Object.keys(map).length;
   return map;
 }
 
