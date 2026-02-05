@@ -27,3 +27,9 @@ docker compose -f my-docker-compose.yml up -d --build frontend
 docker compose -f my-docker-compose.yml up -d --build backend
 docker compose -f my-docker-compose.yml logs -f backend
 ```
+
+- prod 部署
+
+```
+docker compose -f prod-my-docker-compose.yml up -d --build
+```

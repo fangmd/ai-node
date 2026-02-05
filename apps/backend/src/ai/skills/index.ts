@@ -7,15 +7,33 @@ export type SkillInfo = { name: string; description: string; location: string };
 
 const SKILL_FILENAME = 'SKILL.md';
 
+function findAncestorDir(dir: string, ancestorName: string): string | null {
+  const parts = dir.split(path.sep).filter(Boolean);
+  const idx = parts.lastIndexOf(ancestorName);
+  if (idx === -1) return null;
+  const prefix = dir.startsWith(path.sep) ? path.sep : '';
+  return prefix + parts.slice(0, idx + 1).join(path.sep);
+}
+
 /** 技能根目录：相对当前模块所在目录解析，兼容 bundle（dist/）与开发（src/ai/skills/），不依赖 process.cwd */
 export function getSkillsRoot(): string {
+  const envRoot = process.env.SKILLS_ROOT;
+  if (envRoot && fs.existsSync(envRoot)) return envRoot;
+
   const dir = path.dirname(fileURLToPath(import.meta.url));
-  // 生产 bundle 在 dist/index.js，skills 在 dist/../skills
-  const fromDist = path.join(dir, '..', 'skills');
+  // 生产 bundle 在 dist/**，skills 默认在 dist/../skills（即 backend 根目录下 skills）
+  const distDir = findAncestorDir(dir, 'dist');
+  const fromDist = path.join(distDir ?? dir, '..', 'skills');
   // 开发时在 src/ai/skills/index.ts，skills 在 ../../../skills
   const fromSrc = path.join(dir, '..', '..', '..', 'skills');
   // 开发时 fromDist 会错误解析为 src/ai/skills（与 dir 同），需按是否在 dist 下区分
   const inDist = dir.includes(`${path.sep}dist${path.sep}`) || dir.endsWith(`${path.sep}dist`);
+
+  const dockerRoot = `${path.sep}app${path.sep}skills`; // docker 镜像常见位置
+  const candidates = inDist ? [fromDist, dockerRoot] : [fromSrc, dockerRoot];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
   return inDist ? fromDist : fromSrc;
 }
 
