@@ -31,15 +31,29 @@ export function encryptApiKey(plaintext: string): string {
   return `${b64urlEncode(iv)}.${b64urlEncode(tag)}.${b64urlEncode(ciphertext)}`;
 }
 
+/** 解密失败时抛出（如密钥与加密时不一致） */
+export class DecryptError extends Error {
+  constructor(message = 'LLM config decryption failed') {
+    super(message);
+    this.name = 'DecryptError';
+  }
+}
+
 export function decryptApiKey(enc: string): string {
   const [ivStr, tagStr, dataStr] = enc.split('.');
-  if (!ivStr || !tagStr || !dataStr) throw new Error('Invalid encrypted apiKey format');
-  const iv = b64urlDecode(ivStr);
-  const tag = b64urlDecode(tagStr);
-  const data = b64urlDecode(dataStr);
-  const decipher = createDecipheriv(ALGO, keyBytes(), iv);
-  decipher.setAuthTag(tag);
-  const plaintext = Buffer.concat([decipher.update(data), decipher.final()]);
-  return plaintext.toString('utf8');
+  if (!ivStr || !tagStr || !dataStr) throw new DecryptError('Invalid encrypted apiKey format');
+  try {
+    const iv = b64urlDecode(ivStr);
+    const tag = b64urlDecode(tagStr);
+    const data = b64urlDecode(dataStr);
+    const decipher = createDecipheriv(ALGO, keyBytes(), iv);
+    decipher.setAuthTag(tag);
+    const plaintext = Buffer.concat([decipher.update(data), decipher.final()]);
+    return plaintext.toString('utf8');
+  } catch {
+    throw new DecryptError(
+      'AI_KEY_ENCRYPTION_SECRET 与保存配置时不一致，请确认 Docker/环境变量中使用相同密钥'
+    );
+  }
 }
 

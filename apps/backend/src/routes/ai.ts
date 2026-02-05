@@ -16,7 +16,7 @@ import {
   findLlmConfigByIdAndUserId,
   type LlmProviderKind,
 } from '../repositories/llm-config.repository.js';
-import { decryptApiKey } from '../common/crypto.js';
+import { decryptApiKey, DecryptError } from '../common/crypto.js';
 
 const ai = new Hono<{ Variables: { user: AuthUser } }>();
 
@@ -157,7 +157,12 @@ ai.post('/chat', jwtAuth, async (c) => {
     }
     return response;
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'chat failed';
+    const msg =
+      e instanceof DecryptError
+        ? e.message
+        : e instanceof Error
+          ? e.message
+          : 'chat failed';
     throw new AppError(InternalError, msg, undefined, e);
   }
 });

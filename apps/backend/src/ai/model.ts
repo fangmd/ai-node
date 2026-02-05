@@ -11,6 +11,10 @@ export function getModel(provider: Provider, modelId: string) {
       model: baseModel,
       middleware: [customLogMiddleware, devToolsMiddleware()],
     });
+  } else {
+    return wrapLanguageModel({
+      model: baseModel,
+      middleware: [customLogMiddleware],
+    });
   }
-  return baseModel;
 }
