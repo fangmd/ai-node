@@ -15,6 +15,9 @@ function adapterConfigFromUrl(url: string) {
     password: u.password,
     database: u.pathname.slice(1) || undefined,
     connectionLimit: 5,
+    // Docker 内首次建连可能较慢（网络/握手），延长超时避免 pool timeout
+    connectTimeout: 20_000,
+    acquireTimeoutMillis: 20_000,
   };
 }
 

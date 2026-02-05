@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
 import { ZodError } from 'zod';
-import { config } from './common/env';
+import { config, getEnvSummaryForLog } from './common/env';
 import { logger } from './common/logger';
 import { fail, success } from './response';
 import { InternalError, isAppError, NotFound, ValidationError } from './errors';
@@ -17,6 +17,8 @@ type AuthVariables = { user: { id: string; username: string } };
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
 };
+
+logger.info({ env: getEnvSummaryForLog() }, 'env loaded (redacted)');
 
 const app = new Hono<{ Variables: AuthVariables }>();
 

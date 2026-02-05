@@ -55,6 +55,29 @@ function parse() {
 export const config = parse();
 export type Config = ReturnType<typeof parse>;
 
+/** 用于启动时打印的脱敏 env，便于排查 Docker/连接问题 */
+export function getEnvSummaryForLog() {
+  const r = raw();
+  const dbUrl = r.database?.url ?? '';
+  let dbDisplay = '(empty)';
+  if (dbUrl) {
+    try {
+      const u = new URL(dbUrl);
+      dbDisplay = `${u.protocol}//${u.username}:***@${u.hostname}:${u.port || 'default'}${u.pathname}`;
+    } catch {
+      dbDisplay = '(invalid url)';
+    }
+  }
+  return {
+    PORT: r.server?.port ?? process.env.PORT,
+    NODE_ENV: r.server?.nodeEnv ?? process.env.NODE_ENV,
+    DATABASE_URL: dbDisplay,
+    JWT_SECRET: r.auth?.jwtSecret ? `set(${r.auth.jwtSecret.length} chars)` : 'missing',
+    JWT_EXPIRES_IN: r.auth?.jwtExpiresIn ?? 'missing',
+    AI_KEY_ENCRYPTION_SECRET: r.llm?.encryptionSecret ? `set(${r.llm.encryptionSecret.length} chars)` : 'missing',
+  };
+}
+
 export const isDev = config.server.isDev;
 export const JWT_SECRET = config.auth.jwtSecret;
 export const JWT_EXPIRES_IN = config.auth.jwtExpiresIn;

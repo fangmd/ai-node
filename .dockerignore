@@ -1,0 +1,29 @@
+# Dependencies and build artifacts
+node_modules
+**/node_modules
+dist
+**/dist
+.turbo
+generated
+**/generated
+
+# Git and IDE
+.git
+.gitignore
+.cursor
+.agents
+
+# Env and local
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Logs and OS
+*.log
+.DS_Store
+.devtools
+
+# Docs and spec (reduce context size)
+openspec
+*.md
