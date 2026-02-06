@@ -4,13 +4,7 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useStore } from 'zustand';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { Message } from '@/components/chat/message';
 import { SessionList } from '@/components/chat/session-list';
@@ -183,9 +177,12 @@ export default function Chat() {
           )}
         </div>
         <div className="flex-1 overflow-y-auto border rounded p-4 space-y-3 bg-gray-50">
-          {messages?.map((m) => (
-            <Message key={m.id} message={m} />
-          ))}
+          {messages?.map((m, index) => {
+            const isLastMessage = index === (messages?.length ?? 0) - 1;
+            const isLastAssistantMessage = isLastMessage && m.role === 'assistant';
+            const isStreaming = isLastAssistantMessage && status === 'streaming';
+            return <Message key={m.id} message={m} isStreaming={isStreaming} />;
+          })}
           {(status === 'submitted' || status === 'streaming') && (
             <div className="text-left text-muted-foreground flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin shrink-0" />

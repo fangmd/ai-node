@@ -1,4 +1,5 @@
 import { Loader2 } from 'lucide-react';
+import { Streamdown } from 'streamdown';
 
 export interface MessagePart {
   type: string;
@@ -12,15 +13,15 @@ export interface ChatMessage {
   parts: MessagePart[];
 }
 
-function MessageParts({ parts }: { parts: MessagePart[] }) {
+function MessageParts({ parts, isStreaming }: { parts: MessagePart[]; isStreaming?: boolean }) {
   return (
     <>
       {parts.map((part, i) => {
         if (part.type === 'text' && typeof part.text === 'string') {
           return (
-            <span key={i} className="whitespace-pre-wrap">
+            <Streamdown key={i} isAnimating={isStreaming ?? false}>
               {part.text}
-            </span>
+            </Streamdown>
           );
         }
         if (part.type === 'tool-web_search') {
@@ -128,12 +129,12 @@ function MessageParts({ parts }: { parts: MessagePart[] }) {
   );
 }
 
-export function Message({ message }: { message: ChatMessage }) {
+export function Message({ message, isStreaming }: { message: ChatMessage; isStreaming?: boolean }) {
   const isUser = message.role === 'user';
   return (
     <div className={isUser ? 'text-right' : 'text-left'}>
       <span className="font-medium">{isUser ? 'You' : 'Assistant'}: </span>
-      <MessageParts parts={message.parts} />
+      <MessageParts parts={message.parts} isStreaming={isStreaming} />
     </div>
   );
 }
