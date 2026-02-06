@@ -170,6 +170,7 @@ export default function Chat() {
               {llmConfigs.map((x) => (
                 <SelectItem key={x.id} value={x.id}>
                   {x.name}
+                  {x.modelId ? ` (${x.modelId})` : ''}
                   {x.isDefault ? '（默认）' : ''}
                 </SelectItem>
               ))}
