@@ -36,7 +36,6 @@ export function SessionList({ sessionList, currentSessionId, onNewSession, onSel
     }
   };
 
-
   return (
     <aside className="w-48 shrink-0 border rounded p-2 bg-gray-50 flex flex-col">
       <Button variant="outline" size="sm" className="w-full justify-start gap-2 mb-2" onClick={onNewSession}>
@@ -51,13 +50,9 @@ export function SessionList({ sessionList, currentSessionId, onNewSession, onSel
             className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm group ${
               currentSessionId === s.id ? 'bg-primary text-primary-foreground' : 'hover:bg-gray-200'
             }`}
+            onClick={() => onSelectSession(s.id)}
           >
-            <button
-              type="button"
-              onClick={() => onSelectSession(s.id)}
-              className="flex-1 text-left truncate"
-              title={s.title ?? s.id}
-            >
+            <button type="button" className="flex-1 text-left truncate" title={s.title ?? s.id}>
               {s.title ?? '新会话'}
             </button>
             <button
