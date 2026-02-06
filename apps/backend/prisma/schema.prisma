@@ -27,7 +27,7 @@ model LlmConfig {
   provider    String
   base_url    String
   model_id    String
-  api_key_enc String
+  api_key_enc String   @db.VarChar(512)
   is_default  Boolean  @default(false)
   create_time DateTime @default(now())
   update_time DateTime @updatedAt
@@ -38,12 +38,12 @@ model LlmConfig {
 }
 
 model Session {
-  id          BigInt   @id
-  user_id     BigInt
+  id            BigInt   @id
+  user_id       BigInt
   llm_config_id BigInt?
-  title       String?
-  create_time DateTime @default(now())
-  update_time DateTime @updatedAt
+  title         String?
+  create_time   DateTime @default(now())
+  update_time   DateTime @updatedAt
 
   @@map("session")
 }

@@ -17,11 +17,10 @@
 
 ### 高优先级
 
-- [ ] openai-compatible 兼容国产平台
-
 
 ### 中优先级
 
+- [ ] qwen3 aliyun response 接口不兼容 tools 调用
 
 
 ### 低优先级
