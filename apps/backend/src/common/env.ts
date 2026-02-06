@@ -24,6 +24,13 @@ const schema = z.object({
     httpProxy: z.string().optional(),
     httpsProxy: z.string().optional(),
   }),
+  aiSdkLog: z
+    .object({
+      enabled: z.coerce.boolean().default(false),
+      sampleRate: z.coerce.number().min(0).max(1).default(1),
+      maxFieldLength: z.coerce.number().int().positive().default(2000),
+    })
+    .default({ enabled: false, sampleRate: 1, maxFieldLength: 2000 }),
 });
 
 function raw() {
@@ -34,6 +41,11 @@ function raw() {
     database: { url: p.DATABASE_URL },
     llm: { encryptionSecret: p.AI_KEY_ENCRYPTION_SECRET },
     proxy: { httpProxy: p.HTTP_PROXY?.trim(), httpsProxy: p.HTTPS_PROXY?.trim() },
+    aiSdkLog: {
+      enabled: p.AI_SDK_LOG_ENABLED,
+      sampleRate: p.AI_SDK_LOG_SAMPLE_RATE,
+      maxFieldLength: p.AI_SDK_LOG_MAX_FIELD_LENGTH,
+    },
   };
 }
 
@@ -42,13 +54,14 @@ function parse() {
   if (!parsed.success) {
     throw new Error(`Config validation failed: ${parsed.error.message}`);
   }
-  const { server, auth, database, llm, proxy } = parsed.data;
+  const { server, auth, database, llm, proxy, aiSdkLog } = parsed.data;
   return {
     server: { ...server, isDev: server.nodeEnv !== 'production' },
     auth,
     database,
     llm,
     proxy,
+    aiSdkLog,
   };
 }
 

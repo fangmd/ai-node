@@ -25,7 +25,7 @@ export async function streamChatFromUIMessages(
     messages: modelMessages,
     stopWhen: stepCountIs(5),
     providerOptions: {
-      __llm: { baseURL: llm.baseURL },
+      __llm: { baseURL: llm.baseURL, provider: llm.provider, modelId: llm.modelId },
     },
   });
 }
