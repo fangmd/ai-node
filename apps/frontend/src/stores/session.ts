@@ -14,6 +14,7 @@ type SessionState = {
   setCurrentSession: (id: string | null) => void;
   addSession: (session: SessionItem) => void;
   clearCurrent: () => void;
+  removeSessions: (sessionIds: string[]) => void;
 };
 
 export const sessionStore = createStore<SessionState>((set) => ({
@@ -27,4 +28,14 @@ export const sessionStore = createStore<SessionState>((set) => ({
       currentSessionId: session.id,
     })),
   clearCurrent: () => set({ currentSessionId: null }),
+  removeSessions: (sessionIds) =>
+    set((s) => {
+      const deletedSet = new Set(sessionIds);
+      const newSessionList = s.sessionList.filter((session) => !deletedSet.has(session.id));
+      const shouldClearCurrent = s.currentSessionId && deletedSet.has(s.currentSessionId);
+      return {
+        sessionList: newSessionList,
+        currentSessionId: shouldClearCurrent ? null : s.currentSessionId,
+      };
+    }),
 }));

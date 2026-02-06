@@ -27,3 +27,30 @@ export function updateSessionLlmConfigId(sessionId: bigint, userId: bigint, llmC
     data: { llm_config_id: llmConfigId },
   });
 }
+
+export async function deleteSessions(sessionIds: bigint[], userId: bigint) {
+  // Verify ownership: all sessions must belong to the user
+  const sessions = await prisma.session.findMany({
+    where: { id: { in: sessionIds } },
+    select: { id: true, user_id: true },
+  });
+
+  // Check if all requested sessions exist and belong to the user
+  const foundIds = new Set(sessions.map((s) => s.id));
+  const allExist = sessionIds.every((id) => foundIds.has(id));
+  const allBelongToUser = sessions.every((s) => s.user_id === userId);
+
+  if (!allExist || !allBelongToUser) {
+    throw new Error('Some sessions do not exist or do not belong to the user');
+  }
+
+  // Delete in transaction: messages first, then sessions
+  return prisma.$transaction(async (tx) => {
+    await tx.message.deleteMany({
+      where: { session_id: { in: sessionIds } },
+    });
+    return tx.session.deleteMany({
+      where: { id: { in: sessionIds }, user_id: userId },
+    });
+  });
+}

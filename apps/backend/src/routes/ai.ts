@@ -8,6 +8,7 @@ import {
   findSessionsByUserId,
   findSessionByIdAndUserId,
   updateSessionLlmConfigId,
+  deleteSessions,
 } from '../repositories/session.repository.js';
 import { createMessage, findMessagesBySessionId, updateMessageParts } from '../repositories/message.repository.js';
 import { success } from '../response.js';
@@ -73,6 +74,33 @@ ai.get('/sessions/:sessionId/messages', jwtAuth, async (c) => {
       parts: m.parts as unknown[],
     }))
   );
+});
+
+ai.delete('/sessions', jwtAuth, async (c) => {
+  const body = await c.req.json<{ sessionIds?: string[] }>();
+  const sessionIds = body?.sessionIds;
+
+  // Validate request body (task 2.2)
+  if (!Array.isArray(sessionIds) || sessionIds.length === 0) {
+    throw new AppError(BadRequest, 'sessionIds array is required and must be non-empty');
+  }
+
+  const user = c.get('user');
+  const userId = BigInt(user.id);
+
+  try {
+    // Convert string IDs to BigInt and delete (ownership verification handled in deleteSessions)
+    const sessionIdsBigInt = sessionIds.map((id) => BigInt(id));
+    await deleteSessions(sessionIdsBigInt, userId);
+    return success(c, { deleted: true });
+  } catch (e) {
+    // Handle error cases (task 2.5)
+    if (e instanceof Error && e.message.includes('do not exist or do not belong')) {
+      throw new AppError(NotFound, 'some sessions do not exist or do not belong to the user');
+    }
+    const msg = e instanceof Error ? e.message : 'failed to delete sessions';
+    throw new AppError(InternalError, msg, undefined, e);
+  }
 });
 
 ai.post('/chat', jwtAuth, async (c) => {

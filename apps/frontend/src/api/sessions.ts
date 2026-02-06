@@ -23,3 +23,9 @@ export function fetchSessionMessages(sessionId: string) {
     `/api/ai/sessions/${sessionId}/messages`
   );
 }
+
+export function deleteSessions(sessionIds: string[]) {
+  return request.delete<ApiResponse<{ deleted: true }>>('/api/ai/sessions', {
+    data: { sessionIds },
+  });
+}

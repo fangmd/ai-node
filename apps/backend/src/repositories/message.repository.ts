@@ -21,3 +21,9 @@ export function findMessagesBySessionId(sessionId: bigint) {
     orderBy: { create_time: 'asc' },
   });
 }
+
+export function deleteMessagesBySessionIds(sessionIds: bigint[]) {
+  return prisma.message.deleteMany({
+    where: { session_id: { in: sessionIds } },
+  });
+}
