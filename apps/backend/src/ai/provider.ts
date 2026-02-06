@@ -18,11 +18,11 @@ function useChatApi(baseURL: string, modelId: string): boolean {
     baseURL.includes('volces.com') ||
     baseURL.includes('volcengine') ||
     baseURL.includes('aliyuncs.com') ||
-    modelId.startsWith('glm-')
+    baseURL.includes('open.bigmodel.cn')
   );
 }
 
-export function createProvider(kind: ProviderKind, baseURL: string, apiKey: string) {
+export function createProvider(kind: ProviderKind, baseURL: string, apiKey: string, modelId?: string) {
   const fetchOption = getProxyFetch();
   if (kind === 'deepseek') {
     const deepseek = createDeepSeek({ baseURL, apiKey, fetch: fetchOption });
@@ -33,10 +33,24 @@ export function createProvider(kind: ProviderKind, baseURL: string, apiKey: stri
     };
   }
   const openai = createOpenAI({ baseURL, apiKey, fetch: fetchOption });
+
+  // OpenAI Web Search 属于 Responses API 工具；走 Chat API 时不启用，避免不兼容报错
+  const enableWebSearch = modelId ? !useChatApi(baseURL, modelId) : true;
+
   return {
     kind,
     createModel: (modelId: string) => (useChatApi(baseURL, modelId) ? openai.chat(modelId) : openai(modelId)),
-    tools: { ...localTools },
+    tools: {
+      ...localTools,
+      ...(enableWebSearch
+        ? {
+            web_search: openai.tools.webSearch({
+              externalWebAccess: true,
+              searchContextSize: 'medium',
+            }),
+          }
+        : {}),
+    },
   };
 }
 

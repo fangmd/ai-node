@@ -12,7 +12,7 @@ export async function streamChatFromUIMessages(
   uiMessages: UIMessage[],
   llm: { provider: ProviderKind; baseURL: string; apiKey: string; modelId: string }
 ) {
-  const provider = createProvider(llm.provider, llm.baseURL, llm.apiKey);
+  const provider = createProvider(llm.provider, llm.baseURL, llm.apiKey, llm.modelId);
   const model = getModel(provider, llm.modelId);
   const toolSet = provider.tools;
   const modelMessages = await convertToModelMessages(uiMessages, {
