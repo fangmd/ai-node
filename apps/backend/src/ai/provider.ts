@@ -9,6 +9,11 @@ export type ProviderKind = 'openai' | 'deepseek';
  * Volc/方舟等兼容 Chat API(messages) 而非 Responses API(input)，用 chat 避免 input 报 nil
  */
 function useChatApi(baseURL: string, modelId: string): boolean {
+  // DashScope OpenAI-compatible mode 需要走 Responses API（openai(modelId)）
+  // 例如：https://dashscope.aliyuncs.com/api/v2/apps/protocols/compatible-mode/v1
+  if (baseURL.includes('dashscope.aliyuncs.com/api/v2/apps/protocols/compatible-mode')) {
+    return false;
+  }
   return (
     baseURL.includes('volces.com') ||
     baseURL.includes('volcengine') ||

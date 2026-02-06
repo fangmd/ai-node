@@ -1,6 +1,7 @@
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from 'ai';
 import { getModel } from './model.js';
 import { createProvider, type ProviderKind } from './provider.js';
+import logger from '../common/logger.js';
 
 export type ChatMessage = {
   role: 'user' | 'assistant' | 'system';
@@ -23,5 +24,8 @@ export async function streamChatFromUIMessages(
     tools: toolSet,
     messages: modelMessages,
     stopWhen: stepCountIs(5),
+    providerOptions: {
+      __llm: { baseURL: llm.baseURL },
+    },
   });
 }
