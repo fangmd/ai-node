@@ -10,6 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import * as llmApi from '@/api/llm-config';
 import type { LlmConfigItem } from '@/api/llm-config';
 
@@ -159,16 +166,19 @@ export function LlmConfigDialog({ open, onOpenChange, editConfig, onSuccess }: L
 
           <div className="grid gap-2">
             <Label htmlFor="dialog-provider">Provider</Label>
-            <select
-              id="dialog-provider"
-              className="border rounded px-3 py-2 bg-background"
+            <Select
               value={form.provider}
-              onChange={(e) => setForm((s) => ({ ...s, provider: e.target.value as llmApi.LlmProvider }))}
+              onValueChange={(v) => setForm((s) => ({ ...s, provider: v as llmApi.LlmProvider }))}
               disabled={saving}
             >
-              <option value="openai">openai</option>
-              <option value="deepseek">deepseek</option>
-            </select>
+              <SelectTrigger id="dialog-provider" className="w-full">
+                <SelectValue placeholder="选择 Provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="openai">openai</SelectItem>
+                <SelectItem value="deepseek">deepseek</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">

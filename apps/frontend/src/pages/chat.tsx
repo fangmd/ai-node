@@ -4,6 +4,13 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useStore } from 'zustand';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { Message } from '@/components/chat/message';
 import { SessionList } from '@/components/chat/session-list';
@@ -151,23 +158,23 @@ export default function Chat() {
         </div>
         <div className="flex items-center gap-2 mb-2">
           <label className="text-sm text-muted-foreground shrink-0">模型</label>
-          <select
-            className="border rounded px-2 py-1 text-sm bg-background min-w-0"
-            value={selectedLlmConfigId}
-            onChange={(e) => setSelectedLlmConfigId(e.target.value)}
+          <Select
+            value={llmConfigs.length === 0 || !selectedLlmConfigId ? undefined : selectedLlmConfigId}
+            onValueChange={setSelectedLlmConfigId}
             disabled={llmConfigs.length === 0}
           >
-            {llmConfigs.length === 0 ? (
-              <option value="">暂无配置</option>
-            ) : (
-              llmConfigs.map((x) => (
-                <option key={x.id} value={x.id}>
+            <SelectTrigger className="min-w-[180px]">
+              <SelectValue placeholder="暂无配置" />
+            </SelectTrigger>
+            <SelectContent>
+              {llmConfigs.map((x) => (
+                <SelectItem key={x.id} value={x.id}>
                   {x.name}
                   {x.isDefault ? '（默认）' : ''}
-                </option>
-              ))
-            )}
-          </select>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {llmConfigs.length === 0 && (
             <Link to="/settings/llm" className="text-sm text-primary underline">
               去设置
