@@ -177,6 +177,7 @@ export function LlmConfigDialog({ open, onOpenChange, editConfig, onSuccess }: L
               <SelectContent>
                 <SelectItem value="openai">openai</SelectItem>
                 <SelectItem value="deepseek">deepseek</SelectItem>
+                <SelectItem value="alibaba">alibaba</SelectItem>
               </SelectContent>
             </Select>
           </div>

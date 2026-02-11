@@ -1,8 +1,9 @@
+import type { LlmProviderKind } from '@ai-node/types';
 import { prisma } from '../common/prisma.js';
 import { generateUUID } from '../common/snowflake.js';
 import { encryptApiKey } from '../common/crypto.js';
 
-export type LlmProviderKind = 'openai' | 'deepseek';
+export type { LlmProviderKind };
 
 export type LlmConfigCreateInput = {
   name: string;

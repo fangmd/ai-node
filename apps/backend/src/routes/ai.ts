@@ -12,10 +12,10 @@ import {
 } from '../repositories/session.repository.js';
 import { createMessage, findMessagesBySessionId, updateMessageParts } from '../repositories/message.repository.js';
 import { success } from '../response.js';
+import type { LlmProviderKind } from '@ai-node/types';
 import {
   findDefaultLlmConfigByUserId,
   findLlmConfigByIdAndUserId,
-  type LlmProviderKind,
 } from '../repositories/llm-config.repository.js';
 import { decryptApiKey, DecryptError } from '../common/crypto.js';
 

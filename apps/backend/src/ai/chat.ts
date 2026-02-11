@@ -1,6 +1,7 @@
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from 'ai';
 import { getModel } from './model.js';
-import { createProvider, type ProviderKind } from './provider.js';
+import type { LlmProviderKind } from '@ai-node/types';
+import { createProvider } from './provider.js';
 import logger from '../common/logger.js';
 
 export type ChatMessage = {
@@ -10,7 +11,7 @@ export type ChatMessage = {
 
 export async function streamChatFromUIMessages(
   uiMessages: UIMessage[],
-  llm: { provider: ProviderKind; baseURL: string; apiKey: string; modelId: string }
+  llm: { provider: LlmProviderKind; baseURL: string; apiKey: string; modelId: string }
 ) {
   const provider = createProvider(llm.provider, llm.baseURL, llm.apiKey, llm.modelId);
   const model = getModel(provider, llm.modelId);

@@ -1,9 +1,11 @@
+import type { LlmProviderKind } from '@ai-node/types';
+import { createAlibaba } from '@ai-sdk/alibaba';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 import { createOpenAI } from '@ai-sdk/openai';
 import { getProxyFetch } from './proxy-fetch';
 import { localTools } from './tools';
 
-export type ProviderKind = 'openai' | 'deepseek';
+export type { LlmProviderKind as ProviderKind };
 
 /**
  * Volc/方舟等兼容 Chat API(messages) 而非 Responses API(input)，用 chat 避免 input 报 nil
@@ -22,13 +24,21 @@ function useChatApi(baseURL: string, modelId: string): boolean {
   );
 }
 
-export function createProvider(kind: ProviderKind, baseURL: string, apiKey: string, modelId?: string) {
+export function createProvider(kind: LlmProviderKind, baseURL: string, apiKey: string, modelId?: string) {
   const fetchOption = getProxyFetch();
   if (kind === 'deepseek') {
     const deepseek = createDeepSeek({ baseURL, apiKey, fetch: fetchOption });
     return {
       kind,
       createModel: (modelId: string) => deepseek(modelId),
+      tools: { ...localTools },
+    };
+  }
+  if (kind === 'alibaba') {
+    const alibaba = createAlibaba({ baseURL, apiKey, fetch: fetchOption });
+    return {
+      kind,
+      createModel: (modelId: string) => alibaba(modelId),
       tools: { ...localTools },
     };
   }

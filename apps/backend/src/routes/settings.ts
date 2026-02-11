@@ -1,3 +1,4 @@
+import { LLM_PROVIDER_KINDS } from '@ai-node/types';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { jwtAuth, type AuthUser } from '../auth/middleware.js';
@@ -13,7 +14,7 @@ import {
 
 const settings = new Hono<{ Variables: { user: AuthUser } }>();
 
-const providerSchema = z.enum(['openai', 'deepseek']);
+const providerSchema = z.enum(LLM_PROVIDER_KINDS);
 
 const createBody = z.object({
   name: z.string().min(1).max(50),

@@ -1,12 +1,12 @@
-import type { ApiResponse } from '@ai-node/types';
+import type { ApiResponse, LlmProviderKind } from '@ai-node/types';
 import { request } from '@/lib/request';
 
-export type LlmProvider = 'openai' | 'deepseek';
+export type LlmProvider = LlmProviderKind;
 
 export type LlmConfigItem = {
   id: string;
   name: string;
-  provider: LlmProvider;
+  provider: LlmProviderKind;
   baseURL: string;
   modelId: string;
   isDefault: boolean;
@@ -16,7 +16,7 @@ export type LlmConfigItem = {
 
 export type CreateLlmConfigInput = {
   name: string;
-  provider: LlmProvider;
+  provider: LlmProviderKind;
   baseURL: string;
   modelId: string;
   apiKey: string;
