@@ -8,10 +8,13 @@ export function createMessage(sessionId: bigint, role: string, parts: unknown) {
   });
 }
 
-export function updateMessageParts(id: bigint, parts: unknown) {
+export function updateMessageParts(id: bigint, parts: unknown, metadata?: unknown) {
   return prisma.message.update({
     where: { id },
-    data: { parts: parts as any },
+    data: {
+      parts: parts as any,
+      metadata: metadata != null ? JSON.stringify(metadata) : undefined,
+    },
   });
 }
 

@@ -1,17 +1,19 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
+import { DefaultChatTransport, type UIMessage } from 'ai';
 import { useStore } from 'zustand';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import { Message } from '@/components/chat/message';
+import { Message, type MessageMetadata, type ChatMessage } from '@/components/chat/message';
 import { SessionList } from '@/components/chat/session-list';
 import { getToken } from '@/lib/auth';
 import { sessionStore } from '@/stores/session';
 import { llmConfigStore } from '@/stores/llm-config';
 import { fetchSessions, fetchSessionMessages } from '@/api/sessions';
+
+type MyUIMessage = UIMessage<MessageMetadata>;
 
 const CHAT_URL = '/api/ai/chat';
 
@@ -42,7 +44,7 @@ export default function Chat() {
     []
   );
 
-  const { messages, sendMessage, status, error, setMessages } = useChat({
+  const { messages, sendMessage, status, error, setMessages } = useChat<MyUIMessage>({
     transport,
     messages: [],
     onFinish: async ({ isError }) => {
@@ -129,6 +131,26 @@ export default function Chat() {
     [setCurrentSession]
   );
 
+  // Calculate total token usage for the session
+  const totalUsage = useMemo(() => {
+    let total = 0;
+    let input = 0;
+    let output = 0;
+
+    messages?.forEach((msg) => {
+      if (msg.role === 'assistant') {
+        const metadata = msg.metadata as MessageMetadata | undefined;
+        if (metadata?.totalTokens) {
+          total += metadata.totalTokens;
+          input += metadata.inputTokens ?? 0;
+          output += metadata.outputTokens ?? 0;
+        }
+      }
+    });
+
+    return { total, input, output };
+  }, [messages]);
+
   return (
     <div className="flex h-[80vh] max-w-4xl mx-auto gap-4">
       <SessionList
@@ -150,30 +172,38 @@ export default function Chat() {
             设置
           </Link>
         </div>
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-sm text-muted-foreground shrink-0">模型</label>
-          <Select
-            value={llmConfigs.length === 0 || !selectedLlmConfigId ? undefined : selectedLlmConfigId}
-            onValueChange={setSelectedLlmConfigId}
-            disabled={llmConfigs.length === 0}
-          >
-            <SelectTrigger className="min-w-[180px]">
-              <SelectValue placeholder="暂无配置" />
-            </SelectTrigger>
-            <SelectContent>
-              {llmConfigs.map((x) => (
-                <SelectItem key={x.id} value={x.id}>
-                  {x.name}
-                  {x.modelId ? ` (${x.modelId})` : ''}
-                  {x.isDefault ? '（默认）' : ''}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {llmConfigs.length === 0 && (
-            <Link to="/settings/llm" className="text-sm text-primary underline">
-              去设置
-            </Link>
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted-foreground shrink-0">模型</label>
+            <Select
+              value={llmConfigs.length === 0 || !selectedLlmConfigId ? undefined : selectedLlmConfigId}
+              onValueChange={setSelectedLlmConfigId}
+              disabled={llmConfigs.length === 0}
+            >
+              <SelectTrigger className="min-w-[180px]">
+                <SelectValue placeholder="暂无配置" />
+              </SelectTrigger>
+              <SelectContent>
+                {llmConfigs.map((x) => (
+                  <SelectItem key={x.id} value={x.id}>
+                    {x.name}
+                    {x.modelId ? ` (${x.modelId})` : ''}
+                    {x.isDefault ? '（默认）' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {llmConfigs.length === 0 && (
+              <Link to="/settings/llm" className="text-sm text-primary underline">
+                去设置
+              </Link>
+            )}
+          </div>
+          {totalUsage.total > 0 && (
+            <div className="text-sm text-muted-foreground">
+              会话总消耗: <span className="font-medium">{totalUsage.total}</span> tokens (输入: {totalUsage.input}, 输出:{' '}
+              {totalUsage.output})
+            </div>
           )}
         </div>
         <div className="flex-1 overflow-y-auto border rounded p-4 space-y-3 bg-gray-50">
@@ -181,7 +211,7 @@ export default function Chat() {
             const isLastMessage = index === (messages?.length ?? 0) - 1;
             const isLastAssistantMessage = isLastMessage && m.role === 'assistant';
             const isStreaming = isLastAssistantMessage && status === 'streaming';
-            return <Message key={m.id} message={m} isStreaming={isStreaming} />;
+            return <Message key={m.id} message={m as ChatMessage} isStreaming={isStreaming} />;
           })}
           {(status === 'submitted' || status === 'streaming') && (
             <div className="text-left text-muted-foreground flex items-center gap-2">

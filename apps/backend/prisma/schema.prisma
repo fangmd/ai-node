@@ -53,6 +53,7 @@ model Message {
   session_id  BigInt
   role        String
   parts       Json
+  metadata    String?  @db.Text
   create_time DateTime @default(now())
   update_time DateTime @updatedAt
 

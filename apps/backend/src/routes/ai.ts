@@ -66,11 +66,22 @@ ai.get('/sessions/:sessionId/messages', jwtAuth, async (c) => {
   const messages = await findMessagesBySessionId(sessionId);
   return success(
     c,
-    messages.map((m: { id: bigint; role: string; parts: unknown }) => ({
-      id: m.id,
-      role: m.role,
-      parts: m.parts as unknown[],
-    }))
+    messages.map((m: { id: bigint; role: string; parts: unknown; metadata: string | null }) => {
+      let metadata: unknown = undefined;
+      if (m.metadata) {
+        try {
+          metadata = JSON.parse(m.metadata);
+        } catch {
+          // If parsing fails, leave metadata as undefined
+        }
+      }
+      return {
+        id: m.id,
+        role: m.role,
+        parts: m.parts as unknown[],
+        metadata,
+      };
+    })
   );
 });
 
@@ -179,8 +190,18 @@ ai.post('/chat', jwtAuth, async (c) => {
     const response = result.toUIMessageStreamResponse({
       originalMessages: messages,
       generateMessageId: () => assistantIdStr,
+      messageMetadata: ({ part }) => {
+        // Send token usage when streaming completes
+        if (part.type === 'finish') {
+          return {
+            totalTokens: part.totalUsage.totalTokens ?? 0,
+            inputTokens: part.totalUsage.inputTokens ?? 0,
+            outputTokens: part.totalUsage.outputTokens ?? 0,
+          };
+        }
+      },
       onFinish: async ({ responseMessage }) => {
-        await updateMessageParts(assistantMsg.id, responseMessage.parts ?? []);
+        await updateMessageParts(assistantMsg.id, responseMessage.parts ?? [], responseMessage.metadata);
       },
     });
     if (isNewSession) {

@@ -7,10 +7,17 @@ export interface MessagePart {
   [k: string]: unknown;
 }
 
+export interface MessageMetadata {
+  totalTokens?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+}
+
 export interface ChatMessage {
   id: string;
   role: string;
   parts: MessagePart[];
+  metadata?: MessageMetadata;
 }
 
 function MessageParts({ parts, isStreaming }: { parts: MessagePart[]; isStreaming?: boolean }) {
@@ -222,10 +229,18 @@ function MessageParts({ parts, isStreaming }: { parts: MessagePart[]; isStreamin
 
 export function Message({ message, isStreaming }: { message: ChatMessage; isStreaming?: boolean }) {
   const isUser = message.role === 'user';
+  const hasTokenUsage = !isUser && message.metadata?.totalTokens != null;
+
   return (
     <div className={isUser ? 'text-right' : 'text-left'}>
       <span className="font-medium">{isUser ? 'You' : 'Assistant'}: </span>
       <MessageParts parts={message.parts} isStreaming={isStreaming} />
+      {hasTokenUsage && (
+        <div className="mt-1 text-xs text-muted-foreground">
+          Token 消耗: {message.metadata!.totalTokens} (输入: {message.metadata!.inputTokens ?? 0}, 输出:{' '}
+          {message.metadata!.outputTokens ?? 0})
+        </div>
+      )}
     </div>
   );
 }

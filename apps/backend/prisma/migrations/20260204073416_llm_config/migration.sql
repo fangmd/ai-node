@@ -9,7 +9,7 @@ CREATE TABLE `llm_config` (
     `provider` VARCHAR(191) NOT NULL,
     `base_url` VARCHAR(191) NOT NULL,
     `model_id` VARCHAR(191) NOT NULL,
-    `api_key_enc` VARCHAR(191) NOT NULL,
+    `api_key_enc` VARCHAR(512) NOT NULL,
     `is_default` BOOLEAN NOT NULL DEFAULT false,
     `create_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `update_time` DATETIME(3) NOT NULL,
