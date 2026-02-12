@@ -23,6 +23,7 @@ function getIdentityBlock(workspacePath: string): string {
   }).replace(/,/g, '');
   const runtime = `${process.platform} ${process.arch}, Node ${process.version}`;
   const memoryPath = path.join(workspacePath, 'memory', 'MEMORY.md');
+  const dailyNotesPath = path.join(workspacePath, 'memory', 'YYYYMM', 'YYYYMMDD.md');
   const skillsPath = path.join(workspacePath, 'skills');
 
   return `# Context
@@ -38,6 +39,7 @@ ${runtime}
 ## Workspace
 Your workspace is at: ${workspacePath}
 - Memory: ${memoryPath}
+- Daily Notes: ${dailyNotesPath}
 - Skills: ${skillsPath}/{skill-name}/SKILL.md
 
 ## Important Rules
