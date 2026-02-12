@@ -2,6 +2,7 @@ import { tool } from 'ai';
 import { exec } from 'child_process';
 import * as path from 'path';
 import { z } from 'zod';
+import { getWorkspaceDir } from '../../utils/workspace';
 
 function execShell(
   command: string,
@@ -46,11 +47,6 @@ function execShell(
 const DEFAULT_TIMEOUT_MS = 60_000;
 const MAX_OUTPUT_LEN = 10_000;
 
-/** Default cwd: apps/workspace (sibling of backend). Local: ./apps/workspace, Docker: /app/apps/workspace */
-function getDefaultWorkingDir(): string {
-  return path.resolve(process.cwd(), '..', 'workspace');
-}
-
 const DENY_PATTERNS = [
   /\brm\s+-[rf]{1,2}\b/,
   /\bdel\s+\/[fq]\b/,
@@ -91,7 +87,7 @@ export const shell = tool({
       return `Error: ${guardError}`;
     }
 
-    const cwd = working_dir?.trim() || getDefaultWorkingDir();
+    const cwd = working_dir?.trim() || getWorkspaceDir();
 
     const resolvedCwd = path.isAbsolute(cwd) ? cwd : path.resolve(process.cwd(), cwd);
     const result = await execShell(command, {

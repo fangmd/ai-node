@@ -160,6 +160,60 @@ function MessageParts({ parts, isStreaming }: { parts: MessagePart[]; isStreamin
           }
           return null;
         }
+        if (
+          part.type === 'tool-read_file' ||
+          part.type === 'tool-write_file' ||
+          part.type === 'tool-list_dir'
+        ) {
+          const p = part as unknown as {
+            state: string;
+            toolCallId: string;
+            input?: { path?: string; content?: string };
+            output?: string;
+          };
+          const isLoading =
+            p.state === 'input-streaming' ||
+            p.state === 'input-available' ||
+            (p.state !== 'output-available' && p.state !== 'result-available');
+          const label =
+            part.type === 'tool-read_file'
+              ? '读取文件'
+              : part.type === 'tool-write_file'
+                ? '写入文件'
+                : '列出目录';
+          const pathStr = p.input?.path ?? '';
+          if (isLoading) {
+            return (
+              <div key={p.toolCallId} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
+                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                <span>
+                  {pathStr ? `${label}: ${pathStr}` : `${label}…`}
+                </span>
+              </div>
+            );
+          }
+          if (p.state === 'output-available' || p.state === 'result-available') {
+            const out = typeof p.output === 'string' ? p.output : '';
+            return (
+              <div key={p.toolCallId} className="mt-2 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {label}
+                  {pathStr ? (
+                    <>
+                      : <code className="break-all">{pathStr}</code>
+                    </>
+                  ) : null}
+                </p>
+                {out ? (
+                  <pre className="text-xs bg-muted/50 rounded p-2 max-h-48 overflow-auto whitespace-pre-wrap wrap-break-word">
+                    {out}
+                  </pre>
+                ) : null}
+              </div>
+            );
+          }
+          return null;
+        }
         return null;
       })}
     </>
