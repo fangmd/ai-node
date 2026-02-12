@@ -19,7 +19,7 @@ RUN pnpm --filter backend run build
 
 # Run stage: production deps + dist + generated client only
 FROM node:22-alpine AS runner
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN apk add --no-cache bash && corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
