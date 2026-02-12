@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { UIMessage } from 'ai';
 import { jwtAuth, type AuthUser } from '../auth/middleware.js';
 import { streamChatFromUIMessages } from '../ai/chat.js';
+import { buildSystemPrompt } from '../ai/context.js';
 import { AppError, BadRequest, InternalError, NotFound } from '../errors/index.js';
 import {
   createSession,
@@ -13,10 +14,7 @@ import {
 import { createMessage, findMessagesBySessionId, updateMessageParts } from '../repositories/message.repository.js';
 import { success } from '../response.js';
 import type { LlmProviderKind } from '@ai-node/types';
-import {
-  findDefaultLlmConfigByUserId,
-  findLlmConfigByIdAndUserId,
-} from '../repositories/llm-config.repository.js';
+import { findDefaultLlmConfigByUserId, findLlmConfigByIdAndUserId } from '../repositories/llm-config.repository.js';
 import { decryptApiKey, DecryptError } from '../common/crypto.js';
 
 const ai = new Hono<{ Variables: { user: AuthUser } }>();
@@ -167,12 +165,17 @@ ai.post('/chat', jwtAuth, async (c) => {
   try {
     const cfg = await findLlmConfigByIdAndUserId(sessionLlmConfigId, userId);
     if (!cfg) throw new AppError(NotFound, 'llm config not found');
-    const result = await streamChatFromUIMessages(messages, {
-      provider: cfg.provider as LlmProviderKind,
-      baseURL: cfg.base_url,
-      apiKey: decryptApiKey(cfg.api_key_enc),
-      modelId: cfg.model_id,
-    });
+    const systemPrompt = await buildSystemPrompt(userId);
+    const result = await streamChatFromUIMessages(
+      messages,
+      {
+        provider: cfg.provider as LlmProviderKind,
+        baseURL: cfg.base_url,
+        apiKey: decryptApiKey(cfg.api_key_enc),
+        modelId: cfg.model_id,
+      },
+      { systemPrompt, userId }
+    );
     const response = result.toUIMessageStreamResponse({
       originalMessages: messages,
       generateMessageId: () => assistantIdStr,
@@ -185,12 +188,7 @@ ai.post('/chat', jwtAuth, async (c) => {
     }
     return response;
   } catch (e) {
-    const msg =
-      e instanceof DecryptError
-        ? e.message
-        : e instanceof Error
-          ? e.message
-          : 'chat failed';
+    const msg = e instanceof DecryptError ? e.message : e instanceof Error ? e.message : 'chat failed';
     throw new AppError(InternalError, msg, undefined, e);
   }
 });

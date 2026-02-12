@@ -2,7 +2,8 @@ import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from 
 import { getModel } from './model.js';
 import type { LlmProviderKind } from '@ai-node/types';
 import { createProvider } from './provider.js';
-import logger from '../common/logger.js';
+import { buildToolsSection } from './context.js';
+import { createBoundTools } from './tools/index.js';
 
 export type ChatMessage = {
   role: 'user' | 'assistant' | 'system';
@@ -11,17 +12,24 @@ export type ChatMessage = {
 
 export async function streamChatFromUIMessages(
   uiMessages: UIMessage[],
-  llm: { provider: LlmProviderKind; baseURL: string; apiKey: string; modelId: string }
+  llm: { provider: LlmProviderKind; baseURL: string; apiKey: string; modelId: string },
+  options?: { systemPrompt?: string; userId?: string | bigint }
 ) {
   const provider = createProvider(llm.provider, llm.baseURL, llm.apiKey, llm.modelId);
   const model = getModel(provider, llm.modelId);
-  const toolSet = provider.tools;
+  const toolSet =
+    options?.userId != null ? { ...provider.tools, ...createBoundTools(options.userId) } : provider.tools;
   const modelMessages = await convertToModelMessages(uiMessages, {
     tools: toolSet,
   });
 
+  let system = options?.systemPrompt ?? '';
+  const toolsSection = buildToolsSection(toolSet as Record<string, { description?: string }>);
+  if (system && toolsSection) system += '\n\n---\n\n' + toolsSection;
+
   return streamText({
     model,
+    system: system || undefined,
     tools: toolSet,
     messages: modelMessages,
     stopWhen: stepCountIs(5),

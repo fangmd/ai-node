@@ -3,7 +3,6 @@ import { createAlibaba } from '@ai-sdk/alibaba';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 import { createOpenAI } from '@ai-sdk/openai';
 import { getProxyFetch } from './proxy-fetch';
-import { localTools } from './tools';
 
 export type { LlmProviderKind as ProviderKind };
 
@@ -31,7 +30,7 @@ export function createProvider(kind: LlmProviderKind, baseURL: string, apiKey: s
     return {
       kind,
       createModel: (modelId: string) => deepseek(modelId),
-      tools: { ...localTools },
+      tools: {},
     };
   }
   if (kind === 'alibaba') {
@@ -39,7 +38,7 @@ export function createProvider(kind: LlmProviderKind, baseURL: string, apiKey: s
     return {
       kind,
       createModel: (modelId: string) => alibaba(modelId),
-      tools: { ...localTools },
+      tools: {},
     };
   }
   const openai = createOpenAI({ baseURL, apiKey, fetch: fetchOption });
@@ -51,7 +50,6 @@ export function createProvider(kind: LlmProviderKind, baseURL: string, apiKey: s
     kind,
     createModel: (modelId: string) => (useChatApi(baseURL, modelId) ? openai.chat(modelId) : openai(modelId)),
     tools: {
-      ...localTools,
       ...(enableWebSearch
         ? {
             web_search: openai.tools.webSearch({
