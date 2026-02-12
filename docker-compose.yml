@@ -6,6 +6,8 @@ services:
     # 不映射端口到宿主机，仅在同一 Docker 网络内供 frontend 的 nginx 代理访问
     # ports:
     #   - "3000:3000"
+    volumes:
+      - ./apps/workspace:/app/apps/workspace
     environment:
       PORT: "3000"
       NODE_ENV: production

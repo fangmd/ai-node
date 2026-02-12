@@ -123,6 +123,43 @@ function MessageParts({ parts, isStreaming }: { parts: MessagePart[]; isStreamin
           }
           return null;
         }
+        if (part.type === 'tool-shell') {
+          const p = part as unknown as {
+            state: string;
+            toolCallId: string;
+            input?: { command?: string; working_dir?: string };
+            output?: string;
+          };
+          const isLoading =
+            p.state === 'input-streaming' ||
+            p.state === 'input-available' ||
+            (p.state !== 'output-available' && p.state !== 'result-available');
+          const cmd = p.input?.command ?? '';
+          if (isLoading) {
+            return (
+              <div key={p.toolCallId} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
+                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                <span>{cmd ? `正在执行: ${cmd}` : '正在执行命令…'}</span>
+              </div>
+            );
+          }
+          if (p.state === 'output-available' || p.state === 'result-available') {
+            const out = typeof p.output === 'string' ? p.output : '';
+            return (
+              <div key={p.toolCallId} className="mt-2 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">
+                  执行: <code className="break-all">{cmd || '—'}</code>
+                </p>
+                {out ? (
+                  <pre className="text-xs bg-muted/50 rounded p-2 max-h-48 overflow-auto whitespace-pre-wrap wrap-break-word">
+                    {out}
+                  </pre>
+                ) : null}
+              </div>
+            );
+          }
+          return null;
+        }
         return null;
       })}
     </>
