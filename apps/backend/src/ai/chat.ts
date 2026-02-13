@@ -13,7 +13,7 @@ export type ChatMessage = {
 export async function streamChatFromUIMessages(
   uiMessages: UIMessage[],
   llm: { provider: LlmProviderKind; baseURL: string; apiKey: string; modelId: string },
-  options?: { systemPrompt?: string; userId?: string | bigint }
+  options?: { systemPrompt?: string; userId?: string | bigint; abortSignal?: AbortSignal }
 ) {
   const provider = createProvider(llm.provider, llm.baseURL, llm.apiKey, llm.modelId);
   const model = getModel(provider, llm.modelId);
@@ -32,6 +32,7 @@ export async function streamChatFromUIMessages(
     tools: toolSet,
     messages: modelMessages,
     stopWhen: stepCountIs(5),
+    abortSignal: options?.abortSignal,
     providerOptions: {
       __llm: { baseURL: llm.baseURL, provider: llm.provider, modelId: llm.modelId },
     },

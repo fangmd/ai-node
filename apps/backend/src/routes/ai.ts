@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { UIMessage } from 'ai';
+import { consumeStream } from 'ai';
 import { jwtAuth, type AuthUser } from '../auth/middleware.js';
 import { streamChatFromUIMessages } from '../ai/chat.js';
 import { buildSystemPrompt } from '../ai/context.js';
@@ -177,6 +178,8 @@ ai.post('/chat', jwtAuth, async (c) => {
     const cfg = await findLlmConfigByIdAndUserId(sessionLlmConfigId, userId);
     if (!cfg) throw new AppError(NotFound, 'llm config not found');
     const systemPrompt = await buildSystemPrompt(userId);
+    // Get abort signal from request to detect client disconnect
+    const abortSignal = c.req.raw.signal;
     const result = await streamChatFromUIMessages(
       messages,
       {
@@ -185,7 +188,7 @@ ai.post('/chat', jwtAuth, async (c) => {
         apiKey: decryptApiKey(cfg.api_key_enc),
         modelId: cfg.model_id,
       },
-      { systemPrompt, userId }
+      { systemPrompt, userId, abortSignal }
     );
     const response = result.toUIMessageStreamResponse({
       originalMessages: messages,
@@ -200,9 +203,15 @@ ai.post('/chat', jwtAuth, async (c) => {
           };
         }
       },
-      onFinish: async ({ responseMessage }) => {
+      onFinish: async ({ responseMessage, isAborted }) => {
+        // Save message parts even if stream was aborted (partial results)
         await updateMessageParts(assistantMsg.id, responseMessage.parts ?? [], responseMessage.metadata);
+        if (isAborted) {
+          // Stream was aborted by client disconnect
+          // Message parts are already saved above, no additional cleanup needed
+        }
       },
+      consumeSseStream: consumeStream, // Ensures onFinish is called even when stream is aborted
     });
     if (isNewSession) {
       response.headers.set('X-Session-Id', String(sessionId));
