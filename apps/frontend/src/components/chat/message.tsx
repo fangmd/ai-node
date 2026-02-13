@@ -3,6 +3,8 @@ import { Loader2 } from 'lucide-react';
 import { Streamdown } from 'streamdown';
 import type { ActiveArtifact } from './artifacts-view';
 import { HtmlArtifactCard } from './html-artifact-card';
+import { JsonRenderBlock } from './json-render-block';
+import type { Spec } from '@json-render/core';
 
 export interface MessagePart {
   type: string;
@@ -28,33 +30,67 @@ export interface MessageArtifactCallbacks {
   onOpenArtifact: (artifact: ActiveArtifact) => void;
 }
 
-function isHtmlCodeNode(node: unknown): boolean {
+function getCodeBlockLanguage(node: unknown): string | null {
   const el = node as { properties?: { className?: string | string[] } } | undefined;
   const cn = el?.properties?.className;
-  if (cn == null) return false;
-  return Array.isArray(cn) ? cn.includes('language-html') : cn === 'language-html';
+  if (cn == null) return null;
+  const classes = Array.isArray(cn) ? cn : [cn];
+  const lang = classes.find((c) => typeof c === 'string' && c.startsWith('language-'));
+  return lang != null ? (lang as string).slice('language-'.length) : null;
 }
 
-function createHtmlCodeBlockCard(
+function isHtmlCodeNode(node: unknown): boolean {
+  return getCodeBlockLanguage(node) === 'html';
+}
+
+function isJsonRenderCodeNode(node: unknown): boolean {
+  return getCodeBlockLanguage(node) === 'json-render';
+}
+
+function parseJsonRenderSpec(raw: string): Spec | null {
+  try {
+    const parsed = JSON.parse(raw.trim()) as unknown;
+    if (parsed && typeof parsed === 'object' && 'root' in parsed && 'elements' in parsed) {
+      return parsed as Spec;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+function createCodeBlockComponent(
   messageId: string,
   registerHtmlArtifact: (messageId: string, index: number, html: string) => void,
   getNextHtmlIndex: () => number,
   onOpenArtifact: (artifact: ActiveArtifact) => void
 ) {
-  return function HtmlCodeBlockCard({ node, children, ...rest }: React.ComponentProps<'code'> & { node?: unknown }) {
-    if (!isHtmlCodeNode(node)) {
-      return <code {...rest}>{children}</code>;
-    }
-    const htmlContent =
+  return function CodeBlockComponent({ node, children, ...rest }: React.ComponentProps<'code'> & { node?: unknown }) {
+    const lang = getCodeBlockLanguage(node);
+    const content =
       typeof children === 'string'
         ? children
         : Array.isArray(children)
           ? (children as string[]).join('')
           : String(children ?? '');
-    const index = getNextHtmlIndex();
-    registerHtmlArtifact(messageId, index, htmlContent);
 
-    return <HtmlArtifactCard messageId={messageId} index={index} onOpen={onOpenArtifact} />;
+    if (lang === 'json-render') {
+      const spec = parseJsonRenderSpec(content);
+      if (spec) return <JsonRenderBlock spec={spec} />;
+      return (
+        <pre className="rounded border border-dashed border-destructive/50 bg-destructive/5 p-2 text-xs text-destructive">
+          json-render 块内容不是合法的 spec（需包含 root 与 elements）
+        </pre>
+      );
+    }
+
+    if (lang === 'html') {
+      const index = getNextHtmlIndex();
+      registerHtmlArtifact(messageId, index, content);
+      return <HtmlArtifactCard messageId={messageId} index={index} onOpen={onOpenArtifact} />;
+    }
+
+    return <code {...rest}>{children}</code>;
   };
 }
 
@@ -74,7 +110,7 @@ function MessageParts({
   const getNextHtmlIndex = () => getNextHtmlIndexRef.current++;
 
   const streamdownComponents = {
-    code: createHtmlCodeBlockCard(
+    code: createCodeBlockComponent(
       messageId,
       artifactCallbacks.registerHtmlArtifact,
       getNextHtmlIndex,

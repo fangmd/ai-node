@@ -111,6 +111,12 @@ importers:
       '@ai-sdk/react':
         specifier: ^3.0.69
         version: 3.0.69(react@19.2.4)(zod@4.3.6)
+      '@json-render/core':
+        specifier: ^0.5.2
+        version: 0.5.2(zod@4.3.6)
+      '@json-render/react':
+        specifier: ^0.5.2
+        version: 0.5.2(react@19.2.4)(zod@4.3.6)
       '@radix-ui/react-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -156,6 +162,9 @@ importers:
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.4.0
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
       zustand:
         specifier: ^5.0.11
         version: 5.0.11(@types/react@19.2.10)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
@@ -631,6 +640,16 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@json-render/core@0.5.2':
+    resolution: {integrity: sha512-Ti4RXoY3rZbkWiB5sLha0ldKkl0k6s1kXwbdrnB/+W3EWqi9w1bwhboYwUo5MZGQ1n9N44TvMviesXpLISxaEQ==}
+    peerDependencies:
+      zod: ^4.0.0
+
+  '@json-render/react@0.5.2':
+    resolution: {integrity: sha512-VO6OujdzaXYfVF5jtpW1BQY9p6xVcL1Fbl3LrfU4LjbdEpHCVJqFoRRiJLg10PU8teSs/ndBy0VS3WznCZoZuw==}
+    peerDependencies:
+      react: ^19.2.3
 
   '@mrleebo/prisma-ast@0.13.1':
     resolution: {integrity: sha512-XyroGQXcHrZdvmrGJvsA9KNeOOgGMg1Vg9OlheUsBOSKznLMDl+YChxbkboRHvtFYJEMRYmlV3uoo/njCw05iw==}
@@ -3700,6 +3719,17 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@json-render/core@0.5.2(zod@4.3.6)':
+    dependencies:
+      zod: 4.3.6
+
+  '@json-render/react@0.5.2(react@19.2.4)(zod@4.3.6)':
+    dependencies:
+      '@json-render/core': 0.5.2(zod@4.3.6)
+      react: 19.2.4
+    transitivePeerDependencies:
+      - zod
 
   '@mrleebo/prisma-ast@0.13.1':
     dependencies:
