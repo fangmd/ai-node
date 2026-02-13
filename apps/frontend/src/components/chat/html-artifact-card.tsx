@@ -11,10 +11,10 @@ interface HtmlArtifactCardProps {
 export function HtmlArtifactCard({ messageId, index, onOpen }: HtmlArtifactCardProps) {
   return (
     <Card className="my-2 max-w-md">
-      <CardHeader className="py-3">
+      <CardHeader>
         <span className="text-sm font-medium">HTML 预览</span>
       </CardHeader>
-      <CardContent className="py-2">
+      <CardContent>
         <Button variant="outline" size="sm" onClick={() => onOpen({ messageId, index })}>
           在 Artifacts 中查看
         </Button>
