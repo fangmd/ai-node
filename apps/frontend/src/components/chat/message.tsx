@@ -39,14 +39,6 @@ function getCodeBlockLanguage(node: unknown): string | null {
   return lang != null ? (lang as string).slice('language-'.length) : null;
 }
 
-function isHtmlCodeNode(node: unknown): boolean {
-  return getCodeBlockLanguage(node) === 'html';
-}
-
-function isJsonRenderCodeNode(node: unknown): boolean {
-  return getCodeBlockLanguage(node) === 'json-render';
-}
-
 function parseJsonRenderSpec(raw: string): Spec | null {
   try {
     const parsed = JSON.parse(raw.trim()) as unknown;
