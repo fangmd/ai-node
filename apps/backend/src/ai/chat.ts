@@ -17,15 +17,14 @@ export async function streamChatFromUIMessages(
 ) {
   const provider = createProvider(llm.provider, llm.baseURL, llm.apiKey, llm.modelId);
   const model = getModel(provider, llm.modelId);
-  const toolSet =
-    options?.userId != null ? { ...provider.tools, ...createBoundTools(options.userId) } : provider.tools;
+  const toolSet = options?.userId != null ? { ...provider.tools, ...createBoundTools(options.userId) } : provider.tools;
   const modelMessages = await convertToModelMessages(uiMessages, {
     tools: toolSet,
   });
 
   let system = options?.systemPrompt ?? '';
-  const toolsSection = buildToolsSection(toolSet as Record<string, { description?: string }>);
-  if (system && toolsSection) system += '\n\n---\n\n' + toolsSection;
+  // const toolsSection = buildToolsSection(toolSet as Record<string, { description?: string }>);
+  // if (system && toolsSection) system += '\n\n---\n\n' + toolsSection;
 
   return streamText({
     model,
