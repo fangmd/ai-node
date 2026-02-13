@@ -6,7 +6,13 @@ import { useStore } from 'zustand';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import { Message, type MessageMetadata, type ChatMessage } from '@/components/chat/message';
+import {
+  Message,
+  type MessageMetadata,
+  type ChatMessage,
+  type MessageArtifactCallbacks,
+} from '@/components/chat/message';
+import { ArtifactsView, type ActiveArtifact } from '@/components/chat/artifacts-view';
 import { SessionList } from '@/components/chat/session-list';
 import { getToken } from '@/lib/auth';
 import { sessionStore } from '@/stores/session';
@@ -21,6 +27,8 @@ export default function Chat() {
   const [input, setInput] = useState('');
   const lastSendHadNoSession = useRef(false);
   const [selectedLlmConfigId, setSelectedLlmConfigId] = useState<string>('');
+  const artifactsMapRef = useRef<Record<string, string[]>>({});
+  const [activeArtifact, setActiveArtifact] = useState<ActiveArtifact | null>(null);
 
   const sessionList = useStore(sessionStore, (s) => s.sessionList);
   const currentSessionId = useStore(sessionStore, (s) => s.currentSessionId);
@@ -58,6 +66,7 @@ export default function Chat() {
         lastSendHadNoSession.current = false;
       }
     },
+    // experimental_throttle: 100,
   });
 
   useEffect(() => {
@@ -131,6 +140,21 @@ export default function Chat() {
     [setCurrentSession]
   );
 
+  const artifactCallbacks = useMemo<MessageArtifactCallbacks>(
+    () => ({
+      registerHtmlArtifact: (messageId, index, html) => {
+        if (!artifactsMapRef.current[messageId]) artifactsMapRef.current[messageId] = [];
+        artifactsMapRef.current[messageId][index] = html;
+      },
+      onOpenArtifact: setActiveArtifact,
+    }),
+    []
+  );
+
+  const getHtmlForArtifact = useCallback((messageId: string, index: number) => {
+    return artifactsMapRef.current[messageId]?.[index];
+  }, []);
+
   // Calculate total token usage for the session
   const totalUsage = useMemo(() => {
     let total = 0;
@@ -159,92 +183,108 @@ export default function Chat() {
         onNewSession={handleNewSession}
         onSelectSession={handleSelectSession}
       />
-      <div className="flex flex-col flex-1 min-w-0">
-        <div className="flex items-center gap-4 mb-4">
-          <h1 className="text-2xl font-bold">Chat</h1>
-          <Link to="/" className="text-blue-600 underline">
-            Home
-          </Link>
-          <Link to="/me" className="text-blue-600 underline">
-            个人信息
-          </Link>
-          <Link to="/settings" className="text-blue-600 underline">
-            设置
-          </Link>
-        </div>
-        <div className="flex items-center justify-between gap-4 mb-2">
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground shrink-0">模型</label>
-            <Select
-              value={llmConfigs.length === 0 || !selectedLlmConfigId ? undefined : selectedLlmConfigId}
-              onValueChange={setSelectedLlmConfigId}
-              disabled={llmConfigs.length === 0}
-            >
-              <SelectTrigger className="min-w-[180px]">
-                <SelectValue placeholder="暂无配置" />
-              </SelectTrigger>
-              <SelectContent>
-                {llmConfigs.map((x) => (
-                  <SelectItem key={x.id} value={x.id}>
-                    {x.name}
-                    {x.modelId ? ` (${x.modelId})` : ''}
-                    {x.isDefault ? '（默认）' : ''}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {llmConfigs.length === 0 && (
-              <Link to="/settings/llm" className="text-sm text-primary underline">
-                去设置
-              </Link>
+      <div className="flex flex-1 min-w-0 min-h-0">
+        <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden">
+          <div className="flex items-center gap-4 mb-4">
+            <h1 className="text-2xl font-bold">Chat</h1>
+            <Link to="/" className="text-blue-600 underline">
+              Home
+            </Link>
+            <Link to="/me" className="text-blue-600 underline">
+              个人信息
+            </Link>
+            <Link to="/settings" className="text-blue-600 underline">
+              设置
+            </Link>
+          </div>
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground shrink-0">模型</label>
+              <Select
+                value={llmConfigs.length === 0 || !selectedLlmConfigId ? undefined : selectedLlmConfigId}
+                onValueChange={setSelectedLlmConfigId}
+                disabled={llmConfigs.length === 0}
+              >
+                <SelectTrigger className="min-w-[180px]">
+                  <SelectValue placeholder="暂无配置" />
+                </SelectTrigger>
+                <SelectContent>
+                  {llmConfigs.map((x) => (
+                    <SelectItem key={x.id} value={x.id}>
+                      {x.name}
+                      {x.modelId ? ` (${x.modelId})` : ''}
+                      {x.isDefault ? '（默认）' : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {llmConfigs.length === 0 && (
+                <Link to="/settings/llm" className="text-sm text-primary underline">
+                  去设置
+                </Link>
+              )}
+            </div>
+            {totalUsage.total > 0 && (
+              <div className="text-sm text-muted-foreground">
+                会话总消耗: <span className="font-medium">{totalUsage.total}</span> tokens (输入: {totalUsage.input},
+                输出: {totalUsage.output})
+              </div>
             )}
           </div>
-          {totalUsage.total > 0 && (
-            <div className="text-sm text-muted-foreground">
-              会话总消耗: <span className="font-medium">{totalUsage.total}</span> tokens (输入: {totalUsage.input}, 输出:{' '}
-              {totalUsage.output})
-            </div>
+          <div className="flex-1 overflow-y-auto border rounded p-4 space-y-3 bg-gray-50">
+            {messages?.map((m, index) => {
+              const isLastMessage = index === (messages?.length ?? 0) - 1;
+              const isLastAssistantMessage = isLastMessage && m.role === 'assistant';
+              const isStreaming = isLastAssistantMessage && status === 'streaming';
+              return (
+                <Message
+                  key={m.id}
+                  message={m as ChatMessage}
+                  isStreaming={isStreaming}
+                  artifactCallbacks={artifactCallbacks}
+                />
+              );
+            })}
+            {(status === 'submitted' || status === 'streaming') && (
+              <div className="text-left text-muted-foreground flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                <span>{status === 'submitted' ? '等待回复…' : '正在输入…'}</span>
+              </div>
+            )}
+          </div>
+          {error && (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {error.message}
+            </p>
           )}
+          <div className="flex gap-2 mt-4">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' || e.shiftKey) return;
+                // IME composing (e.g. Chinese pinyin selection) should not trigger send
+                if (e.nativeEvent.isComposing || (e as unknown as { keyCode?: number }).keyCode === 229) return;
+                e.preventDefault();
+                send();
+              }}
+              placeholder="Type a message..."
+              className="flex-1 border rounded px-3 py-2"
+              disabled={status !== 'ready' || llmConfigs.length === 0}
+            />
+            <Button onClick={send} disabled={status !== 'ready' || !input.trim() || llmConfigs.length === 0}>
+              Send
+            </Button>
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto border rounded p-4 space-y-3 bg-gray-50">
-          {messages?.map((m, index) => {
-            const isLastMessage = index === (messages?.length ?? 0) - 1;
-            const isLastAssistantMessage = isLastMessage && m.role === 'assistant';
-            const isStreaming = isLastAssistantMessage && status === 'streaming';
-            return <Message key={m.id} message={m as ChatMessage} isStreaming={isStreaming} />;
-          })}
-          {(status === 'submitted' || status === 'streaming') && (
-            <div className="text-left text-muted-foreground flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-              <span>{status === 'submitted' ? '等待回复…' : '正在输入…'}</span>
-            </div>
-          )}
-        </div>
-        {error && (
-          <p className="mt-2 text-sm text-red-600" role="alert">
-            {error.message}
-          </p>
-        )}
-        <div className="flex gap-2 mt-4">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key !== 'Enter' || e.shiftKey) return;
-              // IME composing (e.g. Chinese pinyin selection) should not trigger send
-              if (e.nativeEvent.isComposing || (e as unknown as { keyCode?: number }).keyCode === 229) return;
-              e.preventDefault();
-              send();
-            }}
-            placeholder="Type a message..."
-            className="flex-1 border rounded px-3 py-2"
-            disabled={status !== 'ready' || llmConfigs.length === 0}
+        {activeArtifact && (
+          <ArtifactsView
+            activeArtifact={activeArtifact}
+            getHtml={getHtmlForArtifact}
+            onClose={() => setActiveArtifact(null)}
           />
-          <Button onClick={send} disabled={status !== 'ready' || !input.trim() || llmConfigs.length === 0}>
-            Send
-          </Button>
-        </div>
+        )}
       </div>
     </div>
   );

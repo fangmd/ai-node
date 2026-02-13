@@ -1,5 +1,8 @@
+import { useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Streamdown } from 'streamdown';
+import type { ActiveArtifact } from './artifacts-view';
+import { HtmlArtifactCard } from './html-artifact-card';
 
 export interface MessagePart {
   type: string;
@@ -20,13 +23,71 @@ export interface ChatMessage {
   metadata?: MessageMetadata;
 }
 
-function MessageParts({ parts, isStreaming }: { parts: MessagePart[]; isStreaming?: boolean }) {
+export interface MessageArtifactCallbacks {
+  registerHtmlArtifact: (messageId: string, index: number, html: string) => void;
+  onOpenArtifact: (artifact: ActiveArtifact) => void;
+}
+
+function isHtmlCodeNode(node: unknown): boolean {
+  const el = node as { properties?: { className?: string | string[] } } | undefined;
+  const cn = el?.properties?.className;
+  if (cn == null) return false;
+  return Array.isArray(cn) ? cn.includes('language-html') : cn === 'language-html';
+}
+
+function createHtmlCodeBlockCard(
+  messageId: string,
+  registerHtmlArtifact: (messageId: string, index: number, html: string) => void,
+  getNextHtmlIndex: () => number,
+  onOpenArtifact: (artifact: ActiveArtifact) => void
+) {
+  return function HtmlCodeBlockCard({ node, children, ...rest }: React.ComponentProps<'code'> & { node?: unknown }) {
+    if (!isHtmlCodeNode(node)) {
+      return <code {...rest}>{children}</code>;
+    }
+    const htmlContent =
+      typeof children === 'string'
+        ? children
+        : Array.isArray(children)
+          ? (children as string[]).join('')
+          : String(children ?? '');
+    const index = getNextHtmlIndex();
+    registerHtmlArtifact(messageId, index, htmlContent);
+
+    return <HtmlArtifactCard messageId={messageId} index={index} onOpen={onOpenArtifact} />;
+  };
+}
+
+function MessageParts({
+  parts,
+  isStreaming,
+  messageId,
+  artifactCallbacks,
+}: {
+  parts: MessagePart[];
+  isStreaming?: boolean;
+  messageId: string;
+  artifactCallbacks: MessageArtifactCallbacks;
+}) {
+  const getNextHtmlIndexRef = useRef(0);
+  getNextHtmlIndexRef.current = 0;
+  const getNextHtmlIndex = () => getNextHtmlIndexRef.current++;
+
+  const streamdownComponents = {
+    code: createHtmlCodeBlockCard(
+      messageId,
+      artifactCallbacks.registerHtmlArtifact,
+      getNextHtmlIndex,
+      artifactCallbacks.onOpenArtifact
+    ),
+  };
+
   return (
     <>
       {parts.map((part, i) => {
         if (part.type === 'text' && typeof part.text === 'string') {
           return (
-            <Streamdown key={i} isAnimating={isStreaming ?? false}>
+            <Streamdown key={i} isAnimating={isStreaming ?? false} components={streamdownComponents}>
               {part.text}
             </Streamdown>
           );
@@ -167,11 +228,7 @@ function MessageParts({ parts, isStreaming }: { parts: MessagePart[]; isStreamin
           }
           return null;
         }
-        if (
-          part.type === 'tool-read_file' ||
-          part.type === 'tool-write_file' ||
-          part.type === 'tool-list_dir'
-        ) {
+        if (part.type === 'tool-read_file' || part.type === 'tool-write_file' || part.type === 'tool-list_dir') {
           const p = part as unknown as {
             state: string;
             toolCallId: string;
@@ -183,19 +240,13 @@ function MessageParts({ parts, isStreaming }: { parts: MessagePart[]; isStreamin
             p.state === 'input-available' ||
             (p.state !== 'output-available' && p.state !== 'result-available');
           const label =
-            part.type === 'tool-read_file'
-              ? '读取文件'
-              : part.type === 'tool-write_file'
-                ? '写入文件'
-                : '列出目录';
+            part.type === 'tool-read_file' ? '读取文件' : part.type === 'tool-write_file' ? '写入文件' : '列出目录';
           const pathStr = p.input?.path ?? '';
           if (isLoading) {
             return (
               <div key={p.toolCallId} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
                 <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                <span>
-                  {pathStr ? `${label}: ${pathStr}` : `${label}…`}
-                </span>
+                <span>{pathStr ? `${label}: ${pathStr}` : `${label}…`}</span>
               </div>
             );
           }
@@ -227,14 +278,27 @@ function MessageParts({ parts, isStreaming }: { parts: MessagePart[]; isStreamin
   );
 }
 
-export function Message({ message, isStreaming }: { message: ChatMessage; isStreaming?: boolean }) {
+export function Message({
+  message,
+  isStreaming,
+  artifactCallbacks,
+}: {
+  message: ChatMessage;
+  isStreaming?: boolean;
+  artifactCallbacks: MessageArtifactCallbacks;
+}) {
   const isUser = message.role === 'user';
   const hasTokenUsage = !isUser && message.metadata?.totalTokens != null;
 
   return (
     <div className={isUser ? 'text-right' : 'text-left'}>
       <span className="font-medium">{isUser ? 'You' : 'Assistant'}: </span>
-      <MessageParts parts={message.parts} isStreaming={isStreaming} />
+      <MessageParts
+        parts={message.parts}
+        isStreaming={isStreaming}
+        messageId={message.id}
+        artifactCallbacks={artifactCallbacks}
+      />
       {hasTokenUsage && (
         <div className="mt-1 text-xs text-muted-foreground">
           Token 消耗: {message.metadata!.totalTokens} (输入: {message.metadata!.inputTokens ?? 0}, 输出:{' '}
