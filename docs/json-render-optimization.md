@@ -137,7 +137,7 @@
 
 | 维度             | 参考 chat 示例                     | 当前项目                                                                 | 建议优化方向 |
 |------------------|------------------------------------|--------------------------------------------------------------------------|--------------|
-| Spec 来源        | 结构化 part + pipeJsonRender       | ✓ 已实现：后端 pipeJsonRender，前端 segment + buildSpecFromParts；保留代码块兼容 | 已实现 |
+| Spec 来源        | 结构化 part + pipeJsonRender       | ✓ 已实现：后端 pipeJsonRender，前端 segment + useJsonRenderMessage；保留代码块兼容 | 已实现 |
 | Action 定义      | 仅在 registry，无重复              | ✓ 已实现：仅 registry，handlers 注入 ActionProvider                     | 已实现 |
 | Provider API     | 使用 handlers                      | ✓ 已实现：StateProvider + ActionProvider，传 registry.handlers          | 已实现 |
 | Fallback/Loading | 有 fallback、loading               | ✓ 已实现 fallback；Renderer 支持 loading（流式 part 接入后可用）         | 已实现 |
@@ -150,7 +150,7 @@
 
 - **后端**：`apps/backend/src/routes/ai.ts` 使用 **createUIMessageStream** + **pipeJsonRender(result.toUIMessageStream(...))**，将模型输出中的 \`\`\`spec 代码块解析为 **data-spec** patch parts，保留 originalMessages / onFinish / messageMetadata。
 - **Skill**：`apps/backend/skills/json-render/SKILL.md` 已改为 \`\`\`spec + JSONL 格式（RFC 6902 patch），与官方 chat 示例一致。
-- **前端**：`message.tsx` 的 **MessageParts** 当存在 data-spec parts 时使用 **segment 渲染**（buildSpecFromParts + 按 part 顺序的 text / spec / tools），精确定位「文字 → UI → 文字」；并保留 \`\`\`json-render 代码块与单次 flat data-spec 的兼容。
+- **前端**：`message.tsx` 的 **MessageParts** 当存在 data-spec parts 时使用 **segment 渲染**（useJsonRenderMessage + 按 part 顺序的 text / spec / tools），精确定位「文字 → UI → 文字」；并保留 \`\`\`json-render 代码块与单次 flat data-spec 的兼容。
 
 ---
 
