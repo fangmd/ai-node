@@ -1,5 +1,5 @@
 import { Renderer, JSONUIProvider } from '@json-render/react';
-import type { Spec } from '@json-render/core';
+import type { Spec } from '@ai-node/json-render';
 import { registry } from '@/lib/json-render/registry';
 
 export interface JsonRenderBlockProps {

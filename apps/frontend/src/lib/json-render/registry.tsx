@@ -1,5 +1,5 @@
 import { defineRegistry } from '@json-render/react';
-import { catalog } from './catalog';
+import { catalog } from '@ai-node/json-render';
 
 export const { registry } = defineRegistry(catalog, {
   components: {

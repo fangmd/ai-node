@@ -4,7 +4,7 @@ import { Streamdown } from 'streamdown';
 import type { ActiveArtifact } from './artifacts-view';
 import { HtmlArtifactCard } from './html-artifact-card';
 import { JsonRenderBlock } from './json-render-block';
-import type { Spec } from '@json-render/core';
+import type { Spec } from '@ai-node/json-render';
 
 export interface MessagePart {
   type: string;
