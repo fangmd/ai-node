@@ -3,8 +3,9 @@ import { Loader2 } from 'lucide-react';
 import { Streamdown } from 'streamdown';
 import type { ActiveArtifact } from './artifacts-view';
 import { HtmlArtifactCard } from './html-artifact-card';
-import { JsonRenderBlock } from './json-render-block';
-import type { Spec } from '@ai-node/json-render';
+import { JsonRenderBlock, INVALID_SPEC_MESSAGE } from './json-render-block';
+import { DATA_SPEC_PART_TYPE, isValidSpec, type Spec } from '@ai-node/json-render';
+import { useJsonRenderMessage } from '@json-render/react';
 
 export interface MessagePart {
   type: string;
@@ -39,16 +40,15 @@ function getCodeBlockLanguage(node: unknown): string | null {
   return lang != null ? (lang as string).slice('language-'.length) : null;
 }
 
-function parseJsonRenderSpec(raw: string): Spec | null {
+function parseJsonRenderSpec(raw: string): { spec: Spec | null; parseError?: string } {
   try {
     const parsed = JSON.parse(raw.trim()) as unknown;
-    if (parsed && typeof parsed === 'object' && 'root' in parsed && 'elements' in parsed) {
-      return parsed as Spec;
-    }
-  } catch {
-    // ignore
+    if (isValidSpec(parsed)) return { spec: parsed };
+    return { spec: null, parseError: '缺少 root 或 elements' };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { spec: null, parseError: message };
   }
-  return null;
 }
 
 function createCodeBlockComponent(
@@ -67,11 +67,12 @@ function createCodeBlockComponent(
           : String(children ?? '');
 
     if (lang === 'json-render') {
-      const spec = parseJsonRenderSpec(content);
+      const { spec, parseError } = parseJsonRenderSpec(content);
       if (spec) return <JsonRenderBlock spec={spec} />;
       return (
-        <pre className="rounded border border-dashed border-destructive/50 bg-destructive/5 p-2 text-xs text-destructive">
-          json-render 块内容不是合法的 spec（需包含 root 与 elements）
+        <pre className="rounded border border-dashed border-muted-foreground/30 bg-muted/30 px-3 py-2 text-sm text-muted-foreground whitespace-pre-wrap">
+          {INVALID_SPEC_MESSAGE}
+          {parseError != null && parseError !== '' ? `\n${parseError}` : ''}
         </pre>
       );
     }
@@ -84,6 +85,115 @@ function createCodeBlockComponent(
 
     return <code {...rest}>{children}</code>;
   };
+}
+
+/** Renders a single tool part (web_search, load_skill, shell, etc.). Used by segment and per-part rendering. */
+function renderToolPart(part: MessagePart, key: string): React.ReactNode {
+  const p = part as unknown as { state: string; toolCallId: string; input?: Record<string, unknown>; output?: unknown };
+  const isLoading =
+    p.state === 'input-streaming' ||
+    p.state === 'input-available' ||
+    (p.state !== 'output-available' && p.state !== 'result-available');
+  const hasResult = p.state === 'output-available' || p.state === 'result-available';
+
+  if (part.type === 'tool-web_search') {
+    const out = p.output as { action?: { query?: string }; sources?: Array<{ type: string; url?: string; name?: string }> } | undefined;
+    if (isLoading)
+      return (
+        <div key={key} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
+          <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+          <span>正在搜索…</span>
+        </div>
+      );
+    if (hasResult && out?.sources?.length)
+      return (
+        <div key={key} className="mt-2 space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">引用来源</p>
+          <ul className="list-disc list-inside space-y-0.5 text-sm">
+            {out.sources.map((s, j) =>
+              s.type === 'url' && s.url ? (
+                <li key={j}>
+                  <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
+                    {s.url}
+                  </a>
+                </li>
+              ) : (
+                <li key={j}>{s.type === 'api' ? s.name : null}</li>
+              )
+            )}
+          </ul>
+        </div>
+      );
+    return null;
+  }
+  if (part.type === 'tool-get_server_ip') {
+    const ip =
+      typeof p.output === 'string'
+        ? p.output
+        : (p.output as { result?: string })?.result != null
+          ? (p.output as { result: string }).result
+          : null;
+    if (hasResult && ip != null)
+      return (
+        <div key={key} className="mt-1 text-sm text-muted-foreground">
+          服务端 IP: <span className="font-mono">{ip}</span>
+        </div>
+      );
+    return null;
+  }
+  if (part.type === 'tool-load_skill') {
+    const skillName = p.input?.name;
+    if (isLoading)
+      return (
+        <div key={key} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
+          <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+          <span>{skillName ? `正在加载技能「${skillName}」…` : '正在加载技能…'}</span>
+        </div>
+      );
+    if (hasResult)
+      return (
+        <div key={key} className="mt-1 text-sm text-muted-foreground">
+          已加载技能: <span className="font-medium">{String(skillName ?? '—')}</span>
+        </div>
+      );
+    return null;
+  }
+  if (part.type === 'tool-shell' || part.type === 'tool-read_file' || part.type === 'tool-write_file' || part.type === 'tool-list_dir') {
+    const cmd = (p.input?.command ?? p.input?.path ?? '') as string;
+    const label =
+      part.type === 'tool-shell'
+        ? '执行'
+        : part.type === 'tool-read_file'
+          ? '读取文件'
+          : part.type === 'tool-write_file'
+            ? '写入文件'
+            : '列出目录';
+    if (isLoading)
+      return (
+        <div key={key} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
+          <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+          <span>{cmd ? `${label}: ${cmd}` : `${label}…`}</span>
+        </div>
+      );
+    if (hasResult) {
+      const out = typeof p.output === 'string' ? p.output : '';
+      return (
+        <div key={key} className="mt-2 space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">
+            {label}
+            {cmd ? <>: <code className="break-all">{cmd}</code></> : null}
+          </p>
+          {out ? (
+            <pre className="text-xs bg-muted/50 rounded p-2 max-h-48 overflow-auto whitespace-pre-wrap wrap-break-word">
+              {out}
+            </pre>
+          ) : null}
+        </div>
+      );
+    }
+    return null;
+  }
+  return null;
 }
 
 function MessageParts({
@@ -110,6 +220,63 @@ function MessageParts({
     ),
   };
 
+  const { spec, hasSpec } = useJsonRenderMessage(parts);
+
+  /** Segment-based rendering when we have spec from pipeJsonRender (patch parts) */
+  if (hasSpec && spec && isValidSpec(spec)) {
+    type Seg = { kind: 'text'; text: string } | { kind: 'spec' } | { kind: 'tools'; tools: Array<{ toolCallId: string; type: string; state: string; output?: unknown }> };
+    const segments: Seg[] = [];
+    let specInserted = false;
+    for (const part of parts) {
+      if (part.type === 'text' && typeof part.text === 'string') {
+        const t = part.text.trim();
+        if (!t) continue;
+        const last = segments[segments.length - 1];
+        if (last?.kind === 'text') last.text += '\n\n' + t;
+        else segments.push({ kind: 'text', text: t });
+      } else if (part.type === DATA_SPEC_PART_TYPE && !specInserted) {
+        segments.push({ kind: 'spec' });
+        specInserted = true;
+      } else if (part.type.startsWith('tool-')) {
+        const tp = part as { type: string; toolCallId: string; state: string; output?: unknown };
+        const last = segments[segments.length - 1];
+        if (last?.kind === 'tools') {
+          last.tools.push({ toolCallId: tp.toolCallId, type: tp.type, state: tp.state, output: tp.output });
+        } else {
+          segments.push({
+            kind: 'tools',
+            tools: [{ toolCallId: tp.toolCallId, type: tp.type, state: tp.state, output: tp.output }],
+          });
+        }
+      }
+    }
+    return (
+      <>
+        {segments.map((seg, i) => {
+          if (seg.kind === 'text') {
+            return (
+              <Streamdown key={i} isAnimating={isStreaming ?? false} components={streamdownComponents}>
+                {seg.text}
+              </Streamdown>
+            );
+          }
+          if (seg.kind === 'spec') {
+            return <JsonRenderBlock key={i} spec={spec} />;
+          }
+          return (
+            <span key={i}>
+              {seg.tools.map((t) =>
+                renderToolPart({ type: t.type, toolCallId: t.toolCallId, state: t.state, output: t.output } as MessagePart, t.toolCallId)
+              )}
+            </span>
+          );
+        })}
+      </>
+    );
+  }
+
+  /** Per-part rendering (no segment order, or legacy code-block / flat part) */
+  let specRendered = false;
   return (
     <>
       {parts.map((part, i) => {
@@ -120,185 +287,16 @@ function MessageParts({
             </Streamdown>
           );
         }
-        if (part.type === 'tool-web_search') {
-          const p = part as unknown as {
-            state: string;
-            toolCallId: string;
-            output?: {
-              action?: { query?: string };
-              sources?: Array<{ type: string; url?: string; name?: string }>;
-            };
-          };
-          const isSearching =
-            p.state === 'input-streaming' ||
-            p.state === 'input-available' ||
-            (p.state !== 'output-available' && p.state !== 'result-available');
-          if (isSearching) {
-            return (
-              <div key={p.toolCallId} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
-                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                <span>正在搜索…</span>
-              </div>
-            );
-          }
-          if (p.state === 'output-available' && p.output?.sources?.length) {
-            return (
-              <div key={p.toolCallId} className="mt-2 space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">引用来源</p>
-                <ul className="list-disc list-inside space-y-0.5 text-sm">
-                  {p.output.sources.map((s, j) =>
-                    s.type === 'url' && s.url ? (
-                      <li key={j}>
-                        <a
-                          href={s.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 underline break-all"
-                        >
-                          {s.url}
-                        </a>
-                      </li>
-                    ) : (
-                      <li key={j}>{s.type === 'api' ? s.name : null}</li>
-                    )
-                  )}
-                </ul>
-              </div>
-            );
-          }
-          return null;
+        if (part.type === DATA_SPEC_PART_TYPE && spec && isValidSpec(spec) && !specRendered) {
+          specRendered = true;
+          return <JsonRenderBlock key={i} spec={spec} />;
         }
-        if (part.type === 'tool-get_server_ip') {
-          const p = part as unknown as {
-            state: string;
-            toolCallId: string;
-            output?: string;
-          };
-          const hasResult = p.state === 'output-available' || p.state === 'result-available';
-          const ip =
-            typeof p.output === 'string'
-              ? p.output
-              : p.output != null && typeof (p.output as { result?: string })?.result === 'string'
-                ? (p.output as { result: string }).result
-                : null;
-          if (hasResult && ip != null) {
-            return (
-              <div key={p.toolCallId} className="mt-1 text-sm text-muted-foreground">
-                服务端 IP: <span className="font-mono">{ip}</span>
-              </div>
-            );
-          }
-          return null;
-        }
-        if (part.type === 'tool-load_skill') {
-          const p = part as unknown as {
-            state: string;
-            toolCallId: string;
-            input?: { name?: string };
-            output?: string;
-          };
-          const isLoading =
-            p.state === 'input-streaming' ||
-            p.state === 'input-available' ||
-            (p.state !== 'output-available' && p.state !== 'result-available');
-          const skillName = p.input?.name;
-          if (isLoading) {
-            return (
-              <div key={p.toolCallId} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
-                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                <span>{skillName ? `正在加载技能「${skillName}」…` : '正在加载技能…'}</span>
-              </div>
-            );
-          }
-          if (p.state === 'output-available' || p.state === 'result-available') {
-            return (
-              <div key={p.toolCallId} className="mt-1 text-sm text-muted-foreground">
-                已加载技能: <span className="font-medium">{skillName ?? '—'}</span>
-              </div>
-            );
-          }
-          return null;
-        }
-        if (part.type === 'tool-shell') {
-          const p = part as unknown as {
-            state: string;
-            toolCallId: string;
-            input?: { command?: string; working_dir?: string };
-            output?: string;
-          };
-          const isLoading =
-            p.state === 'input-streaming' ||
-            p.state === 'input-available' ||
-            (p.state !== 'output-available' && p.state !== 'result-available');
-          const cmd = p.input?.command ?? '';
-          if (isLoading) {
-            return (
-              <div key={p.toolCallId} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
-                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                <span>{cmd ? `正在执行: ${cmd}` : '正在执行命令…'}</span>
-              </div>
-            );
-          }
-          if (p.state === 'output-available' || p.state === 'result-available') {
-            const out = typeof p.output === 'string' ? p.output : '';
-            return (
-              <div key={p.toolCallId} className="mt-2 space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">
-                  执行: <code className="break-all">{cmd || '—'}</code>
-                </p>
-                {out ? (
-                  <pre className="text-xs bg-muted/50 rounded p-2 max-h-48 overflow-auto whitespace-pre-wrap wrap-break-word">
-                    {out}
-                  </pre>
-                ) : null}
-              </div>
-            );
-          }
-          return null;
-        }
-        if (part.type === 'tool-read_file' || part.type === 'tool-write_file' || part.type === 'tool-list_dir') {
-          const p = part as unknown as {
-            state: string;
-            toolCallId: string;
-            input?: { path?: string; content?: string };
-            output?: string;
-          };
-          const isLoading =
-            p.state === 'input-streaming' ||
-            p.state === 'input-available' ||
-            (p.state !== 'output-available' && p.state !== 'result-available');
-          const label =
-            part.type === 'tool-read_file' ? '读取文件' : part.type === 'tool-write_file' ? '写入文件' : '列出目录';
-          const pathStr = p.input?.path ?? '';
-          if (isLoading) {
-            return (
-              <div key={p.toolCallId} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
-                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                <span>{pathStr ? `${label}: ${pathStr}` : `${label}…`}</span>
-              </div>
-            );
-          }
-          if (p.state === 'output-available' || p.state === 'result-available') {
-            const out = typeof p.output === 'string' ? p.output : '';
-            return (
-              <div key={p.toolCallId} className="mt-2 space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">
-                  {label}
-                  {pathStr ? (
-                    <>
-                      : <code className="break-all">{pathStr}</code>
-                    </>
-                  ) : null}
-                </p>
-                {out ? (
-                  <pre className="text-xs bg-muted/50 rounded p-2 max-h-48 overflow-auto whitespace-pre-wrap wrap-break-word">
-                    {out}
-                  </pre>
-                ) : null}
-              </div>
-            );
-          }
-          return null;
+        if (part.type.startsWith('tool-')) {
+          return (
+            <span key={i}>
+              {renderToolPart(part, (part as { toolCallId?: string }).toolCallId ?? String(i))}
+            </span>
+          );
         }
         return null;
       })}

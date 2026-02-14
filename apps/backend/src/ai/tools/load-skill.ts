@@ -1,5 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
+import { getJsonRenderSkillPrompt } from '@ai-node/json-render';
 import { getSkillInfoList, loadSkillContent } from '../skills';
 
 const skills = getSkillInfoList();
@@ -19,6 +20,10 @@ export const load_skill = tool({
   }),
   execute: async ({ name }) => {
     const { content, baseDir } = loadSkillContent(name);
-    return [`## Skill: ${name}`, '', `**Base directory**: ${baseDir}`, '', content].join('\n');
+    let body = [`## Skill: ${name}`, '', `**Base directory**: ${baseDir}`, '', content].join('\n');
+    if (name === 'json-render') {
+      body += '\n\n---\n\n' + getJsonRenderSkillPrompt();
+    }
+    return body;
   },
 });

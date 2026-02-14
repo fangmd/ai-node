@@ -33,3 +33,10 @@ docker compose -f my-docker-compose.yml logs -f backend
 ```
 docker compose -f prod-my-docker-compose.yml up -d --build
 ```
+
+# shadcn
+
+```
+pnpm --filter frontend exec pnpm dlx shadcn@latest add checkbox
+```
+

@@ -163,4 +163,4 @@
 | 前端渲染 | 首阶段：消息流内嵌 Renderer + registry（方案 A）；可选：卡片 + ArtifactsView（方案 B）。 |
 | 约定一致 | Catalog/Registry 与 Skill 文档中组件、actions 列表保持一致。 |
 
-参考：[json-render Quick Start](https://json-render.dev/docs/quick-start)，项目内 [ai-artifacts-html-design.md](./ai-artifacts-html-design.md)。
+参考：[json-render Quick Start](https://json-render.dev/docs/quick-start)，项目内 [ai-artifacts-html-design.md](./ai-artifacts-html-design.md)。优化点分析见 [json-render-optimization.md](./json-render-optimization.md)。

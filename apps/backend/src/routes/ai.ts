@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { UIMessage } from 'ai';
-import { consumeStream } from 'ai';
+import { consumeStream, createUIMessageStream, createUIMessageStreamResponse } from 'ai';
+import { pipeJsonRender } from '@json-render/core';
 import { jwtAuth, type AuthUser } from '../auth/middleware.js';
 import { streamChatFromUIMessages } from '../ai/chat.js';
 import { buildSystemPrompt } from '../ai/context.js';
@@ -190,28 +191,35 @@ ai.post('/chat', jwtAuth, async (c) => {
       },
       { systemPrompt, userId, abortSignal }
     );
-    const response = result.toUIMessageStreamResponse({
+    const stream = createUIMessageStream({
+      execute: async ({ writer }) => {
+        writer.merge(
+          pipeJsonRender(
+            result.toUIMessageStream({
+              originalMessages: messages,
+              generateMessageId: () => assistantIdStr,
+              messageMetadata: ({ part }) => {
+                if (part.type === 'finish') {
+                  return {
+                    totalTokens: part.totalUsage.totalTokens ?? 0,
+                    inputTokens: part.totalUsage.inputTokens ?? 0,
+                    outputTokens: part.totalUsage.outputTokens ?? 0,
+                  };
+                }
+              },
+            })
+          )
+        );
+      },
       originalMessages: messages,
-      generateMessageId: () => assistantIdStr,
-      messageMetadata: ({ part }) => {
-        // Send token usage when streaming completes
-        if (part.type === 'finish') {
-          return {
-            totalTokens: part.totalUsage.totalTokens ?? 0,
-            inputTokens: part.totalUsage.inputTokens ?? 0,
-            outputTokens: part.totalUsage.outputTokens ?? 0,
-          };
-        }
-      },
-      onFinish: async ({ responseMessage, isAborted }) => {
-        // Save message parts even if stream was aborted (partial results)
+      generateId: () => assistantIdStr,
+      onFinish: async ({ responseMessage }) => {
         await updateMessageParts(assistantMsg.id, responseMessage.parts ?? [], responseMessage.metadata);
-        if (isAborted) {
-          // Stream was aborted by client disconnect
-          // Message parts are already saved above, no additional cleanup needed
-        }
       },
-      consumeSseStream: consumeStream, // Ensures onFinish is called even when stream is aborted
+    });
+    const response = createUIMessageStreamResponse({
+      stream,
+      consumeSseStream: consumeStream,
     });
     if (isNewSession) {
       response.headers.set('X-Session-Id', String(sessionId));
