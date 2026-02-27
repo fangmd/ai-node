@@ -66,7 +66,7 @@ export default function Chat() {
         lastSendHadNoSession.current = false;
       }
     },
-    // experimental_throttle: 100,
+    experimental_throttle: 120,
   });
 
   useEffect(() => {
@@ -155,13 +155,29 @@ export default function Chat() {
     return artifactsMapRef.current[messageId]?.[index];
   }, []);
 
-  // Calculate total token usage for the session
-  const totalUsage = useMemo(() => {
+  const [totalUsage, setTotalUsage] = useState<{ total: number; input: number; output: number }>({
+    total: 0,
+    input: 0,
+    output: 0,
+  });
+
+  // Calculate total token usage for the session.
+  // 在流式阶段不重复计算，只在消息稳定且状态为 ready 时统计，减少每次渲染的计算量。
+  useEffect(() => {
+    if (!messages || messages.length === 0) {
+      setTotalUsage({ total: 0, input: 0, output: 0 });
+      return;
+    }
+
+    if (status !== 'ready') {
+      return;
+    }
+
     let total = 0;
     let input = 0;
     let output = 0;
 
-    messages?.forEach((msg) => {
+    messages.forEach((msg) => {
       if (msg.role === 'assistant') {
         const metadata = msg.metadata as MessageMetadata | undefined;
         if (metadata?.totalTokens) {
@@ -172,8 +188,8 @@ export default function Chat() {
       }
     });
 
-    return { total, input, output };
-  }, [messages]);
+    setTotalUsage({ total, input, output });
+  }, [messages, status]);
 
   return (
     <div className="flex h-[80vh] max-w-4xl mx-auto gap-4">
