@@ -2,8 +2,6 @@ import axios from 'axios';
 import JSONBig from 'json-bigint';
 import { getToken, clearToken } from './auth';
 
-const LOGIN_PATH = '/api/auth/login';
-
 const jsonParser = JSONBig({ storeAsString: true });
 
 let onUnauthorized: (() => void) | null = null;
@@ -12,7 +10,7 @@ export function setOnUnauthorized(fn: (() => void) | null): void {
   onUnauthorized = fn;
 }
 
-export const request = axios.create({
+const request = axios.create({
   baseURL: '',
   headers: { 'Content-Type': 'application/json' },
   transformResponse: [
@@ -36,15 +34,16 @@ request.interceptors.request.use((config) => {
 });
 
 request.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
+  (res) => {
+    if (res.data.code === 401) {
       clearToken();
-      const url = err.config?.url ?? '';
-      if (!url.includes(LOGIN_PATH)) {
-        onUnauthorized?.();
-      }
+      onUnauthorized?.();
     }
+    return res;
+  },
+  (err) => {
     return Promise.reject(err);
   }
 );
+
+export { request };
