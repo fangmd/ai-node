@@ -97,7 +97,9 @@ function renderToolPart(part: MessagePart, key: string): React.ReactNode {
   const hasResult = p.state === 'output-available' || p.state === 'result-available';
 
   if (part.type === 'tool-web_search') {
-    const out = p.output as { action?: { query?: string }; sources?: Array<{ type: string; url?: string; name?: string }> } | undefined;
+    const out = p.output as
+      | { action?: { query?: string }; sources?: Array<{ type: string; url?: string; name?: string }> }
+      | undefined;
     if (isLoading)
       return (
         <div key={key} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
@@ -113,7 +115,12 @@ function renderToolPart(part: MessagePart, key: string): React.ReactNode {
             {out.sources.map((s, j) =>
               s.type === 'url' && s.url ? (
                 <li key={j}>
-                  <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline break-all"
+                  >
                     {s.url}
                   </a>
                 </li>
@@ -143,6 +150,8 @@ function renderToolPart(part: MessagePart, key: string): React.ReactNode {
   }
   if (part.type === 'tool-load_skill') {
     const skillName = p.input?.name;
+    // console.log('p', p);
+
     if (isLoading)
       return (
         <div key={key} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
@@ -158,7 +167,12 @@ function renderToolPart(part: MessagePart, key: string): React.ReactNode {
       );
     return null;
   }
-  if (part.type === 'tool-shell' || part.type === 'tool-read_file' || part.type === 'tool-write_file' || part.type === 'tool-list_dir') {
+  if (
+    part.type === 'tool-shell' ||
+    part.type === 'tool-read_file' ||
+    part.type === 'tool-write_file' ||
+    part.type === 'tool-list_dir'
+  ) {
     const cmd = (p.input?.command ?? p.input?.path ?? '') as string;
     const label =
       part.type === 'tool-shell'
@@ -181,7 +195,11 @@ function renderToolPart(part: MessagePart, key: string): React.ReactNode {
         <div key={key} className="mt-2 space-y-1">
           <p className="text-xs font-medium text-muted-foreground">
             {label}
-            {cmd ? <>: <code className="break-all">{cmd}</code></> : null}
+            {cmd ? (
+              <>
+                : <code className="break-all">{cmd}</code>
+              </>
+            ) : null}
           </p>
           {out ? (
             <pre className="text-xs bg-muted/50 rounded p-2 max-h-48 overflow-auto whitespace-pre-wrap wrap-break-word">
@@ -224,7 +242,20 @@ function MessageParts({
 
   /** Segment-based rendering when we have spec from pipeJsonRender (patch parts) */
   if (hasSpec && spec && isValidSpec(spec)) {
-    type Seg = { kind: 'text'; text: string } | { kind: 'spec' } | { kind: 'tools'; tools: Array<{ toolCallId: string; type: string; state: string; output?: unknown }> };
+    type Seg =
+      | { kind: 'text'; text: string }
+      | { kind: 'spec' }
+      | {
+          kind: 'tools';
+          tools: Array<
+            MessagePart & {
+              toolCallId: string;
+              state: string;
+              input?: Record<string, unknown>;
+              output?: unknown;
+            }
+          >;
+        };
     const segments: Seg[] = [];
     let specInserted = false;
     for (const part of parts) {
@@ -238,14 +269,20 @@ function MessageParts({
         segments.push({ kind: 'spec' });
         specInserted = true;
       } else if (part.type.startsWith('tool-')) {
-        const tp = part as { type: string; toolCallId: string; state: string; output?: unknown };
+        const tp = part as MessagePart & {
+          type: string;
+          toolCallId: string;
+          state: string;
+          input?: Record<string, unknown>;
+          output?: unknown;
+        };
         const last = segments[segments.length - 1];
         if (last?.kind === 'tools') {
-          last.tools.push({ toolCallId: tp.toolCallId, type: tp.type, state: tp.state, output: tp.output });
+          last.tools.push(tp);
         } else {
           segments.push({
             kind: 'tools',
-            tools: [{ toolCallId: tp.toolCallId, type: tp.type, state: tp.state, output: tp.output }],
+            tools: [tp],
           });
         }
       }
@@ -265,9 +302,7 @@ function MessageParts({
           }
           return (
             <span key={i}>
-              {seg.tools.map((t) =>
-                renderToolPart({ type: t.type, toolCallId: t.toolCallId, state: t.state, output: t.output } as MessagePart, t.toolCallId)
-              )}
+              {seg.tools.map((t) => renderToolPart(t, t.toolCallId))}
             </span>
           );
         })}
@@ -292,11 +327,7 @@ function MessageParts({
           return <JsonRenderBlock key={i} spec={spec} />;
         }
         if (part.type.startsWith('tool-')) {
-          return (
-            <span key={i}>
-              {renderToolPart(part, (part as { toolCallId?: string }).toolCallId ?? String(i))}
-            </span>
-          );
+          return <span key={i}>{renderToolPart(part, (part as { toolCallId?: string }).toolCallId ?? String(i))}</span>;
         }
         return null;
       })}
