@@ -2,8 +2,9 @@ import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from 
 import { getModel } from './model.js';
 import type { LlmProviderKind } from '@ai-node/types';
 import { createProvider } from './provider.js';
-import { buildToolsSection } from './context.js';
 import { createBoundTools } from './tools/index.js';
+import { createMCPClientsAndTools, closeMCPClients, getDefaultMCPServers, type MCPServerConfig } from './mcp.js';
+import { logger } from '../common/logger.js';
 
 export type ChatMessage = {
   role: 'user' | 'assistant' | 'system';
@@ -13,20 +14,37 @@ export type ChatMessage = {
 export async function streamChatFromUIMessages(
   uiMessages: UIMessage[],
   llm: { provider: LlmProviderKind; baseURL: string; apiKey: string; modelId: string },
-  options?: { systemPrompt?: string; userId?: string | bigint; abortSignal?: AbortSignal }
+  options?: {
+    systemPrompt?: string;
+    userId?: string | bigint;
+    abortSignal?: AbortSignal;
+    mcpServers?: MCPServerConfig[];
+  }
 ) {
   const provider = createProvider(llm.provider, llm.baseURL, llm.apiKey, llm.modelId);
   const model = getModel(provider, llm.modelId);
-  const toolSet = options?.userId != null ? { ...provider.tools, ...createBoundTools(options.userId) } : provider.tools;
+
+  const mcpServers = options?.mcpServers ?? getDefaultMCPServers();
+  logger.info({ mcpServers }, 'MCP servers');
+  const { tools: mcpTools, clients: mcpClients } =
+    mcpServers.length > 0 ? await createMCPClientsAndTools(mcpServers) : { tools: {}, clients: [] };
+  logger.info({ mcpTools }, 'MCP tools');
+
+  const toolSet = {
+    ...provider.tools,
+    ...mcpTools,
+    ...(options?.userId != null ? createBoundTools(options.userId) : {}),
+  };
+
   const modelMessages = await convertToModelMessages(uiMessages, {
     tools: toolSet,
   });
 
-  let system = options?.systemPrompt ?? '';
-  // const toolsSection = buildToolsSection(toolSet as Record<string, { description?: string }>);
-  // if (system && toolsSection) system += '\n\n---\n\n' + toolsSection;
+  const system = options?.systemPrompt ?? '';
 
-  return streamText({
+  logger.info({ toolSet }, 'toolSet');
+
+  const result = await streamText({
     model,
     system: system || undefined,
     tools: toolSet,
@@ -37,4 +55,31 @@ export async function streamChatFromUIMessages(
       __llm: { baseURL: llm.baseURL, provider: llm.provider, modelId: llm.modelId },
     },
   });
+
+  if (mcpClients.length === 0) return result;
+
+  const closeAll = () => {
+    closeMCPClients(mcpClients).catch(() => {});
+  };
+  const originalToUIMessageStream = result.toUIMessageStream.bind(result);
+  result.toUIMessageStream = (opts) => {
+    const inner = originalToUIMessageStream(opts);
+    const reader = inner.getReader();
+    return new ReadableStream({
+      async pull(controller) {
+        const { done, value } = await reader.read();
+        if (done) {
+          closeAll();
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      },
+      cancel() {
+        closeAll();
+        return reader.cancel();
+      },
+    });
+  };
+  return result;
 }
