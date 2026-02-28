@@ -5,7 +5,7 @@ import { DefaultChatTransport, type UIMessage } from 'ai';
 import { useStore } from 'zustand';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Square } from 'lucide-react';
 import {
   Message,
   type MessageMetadata,
@@ -52,7 +52,7 @@ export default function Chat() {
     []
   );
 
-  const { messages, sendMessage, status, error, setMessages } = useChat<MyUIMessage>({
+  const { messages, sendMessage, stop, status, error, setMessages } = useChat<MyUIMessage>({
     transport,
     messages: [],
     onFinish: async ({ isError }) => {
@@ -289,9 +289,16 @@ export default function Chat() {
               className="flex-1 border rounded px-3 py-2"
               disabled={status !== 'ready' || llmConfigs.length === 0}
             />
-            <Button onClick={send} disabled={status !== 'ready' || !input.trim() || llmConfigs.length === 0}>
-              Send
-            </Button>
+            {(status === 'submitted' || status === 'streaming') ? (
+              <Button type="button" variant="outline" onClick={() => stop()} aria-label="停止生成">
+                <Square className="h-4 w-4 shrink-0 mr-1.5" />
+                停止
+              </Button>
+            ) : (
+              <Button onClick={send} disabled={!input.trim() || llmConfigs.length === 0}>
+                Send
+              </Button>
+            )}
           </div>
         </div>
         {activeArtifact && (
