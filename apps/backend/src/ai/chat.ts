@@ -49,7 +49,7 @@ export async function streamChatFromUIMessages(
     system: system || undefined,
     tools: toolSet,
     messages: modelMessages,
-    stopWhen: stepCountIs(5),
+    stopWhen: stepCountIs(10),
     abortSignal: options?.abortSignal,
     providerOptions: {
       __llm: { baseURL: llm.baseURL, provider: llm.provider, modelId: llm.modelId },
