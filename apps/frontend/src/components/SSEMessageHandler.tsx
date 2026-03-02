@@ -1,8 +1,8 @@
+import { useEffect } from 'react';
 import { useSSEEvent } from '@/contexts/SSEContext';
-import {
-  SSE_EVENT_USER_MESSAGE,
-  type UserMessagePayload,
-} from '@/lib/sse';
+import { requestPermission } from '@/lib/notification';
+import { showWhenHidden } from '@/lib/notification';
+import { SSE_EVENT_USER_MESSAGE, type UserMessagePayload } from '@/lib/sse';
 import { toast } from 'sonner';
 
 function isUserMessagePayload(data: unknown): data is UserMessagePayload {
@@ -15,6 +15,10 @@ function isUserMessagePayload(data: unknown): data is UserMessagePayload {
 }
 
 export function SSEMessageHandler() {
+  useEffect(() => {
+    requestPermission();
+  }, []);
+
   useSSEEvent(SSE_EVENT_USER_MESSAGE, (data) => {
     if (!isUserMessagePayload(data)) return;
     const { title, message } = data;
@@ -23,6 +27,7 @@ export function SSEMessageHandler() {
     } else {
       toast(message);
     }
+    showWhenHidden(title ?? '通知', message);
   });
 
   return null;
