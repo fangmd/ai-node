@@ -2,6 +2,7 @@ import { getUserWorkspaceDir } from '../../utils/workspace.js';
 import { createFilesystemTools, read_file, write_file, list_dir } from './filesystem.js';
 import { get_server_ip } from './get-server-ip.js';
 import { load_skill } from './load-skill.js';
+import { createSendMessageTool } from './send-message.js';
 import { createShellTool, shell } from './shell.js';
 
 export const localTools = {
@@ -20,5 +21,6 @@ export function createBoundTools(userId: string | bigint) {
     ...localTools,
     ...createFilesystemTools(getBase),
     shell: createShellTool(getBase),
+    send_message: createSendMessageTool(userId),
   };
 }
