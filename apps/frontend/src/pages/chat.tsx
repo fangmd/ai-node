@@ -29,6 +29,7 @@ export default function Chat() {
   const [selectedLlmConfigId, setSelectedLlmConfigId] = useState<string>('');
   const artifactsMapRef = useRef<Record<string, string[]>>({});
   const [activeArtifact, setActiveArtifact] = useState<ActiveArtifact | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const sessionList = useStore(sessionStore, (s) => s.sessionList);
   const currentSessionId = useStore(sessionStore, (s) => s.currentSessionId);
@@ -103,6 +104,17 @@ export default function Chat() {
       setMessages([]);
     }
   }, [currentSessionId, setMessages]);
+
+  // 加载消息后滚动到最后一条
+  useEffect(() => {
+    if (!messages?.length) return;
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const id = requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+    return () => cancelAnimationFrame(id);
+  }, [messages?.length]);
 
   // restore model selection when switching sessions
   useEffect(() => {
@@ -247,7 +259,7 @@ export default function Chat() {
               </div>
             )}
           </div>
-          <div className="flex-1 overflow-y-auto border rounded p-4 space-y-3 bg-gray-50">
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto border rounded p-4 space-y-3 bg-gray-50">
             {messages?.map((m, index) => {
               const isLastMessage = index === (messages?.length ?? 0) - 1;
               const isLastAssistantMessage = isLastMessage && m.role === 'assistant';

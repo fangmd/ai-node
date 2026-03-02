@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Outlet } from 'react-router-dom';
 import { setOnUnauthorized } from '@/lib/request';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { SSEProvider } from '@/contexts/SSEContext';
 import Home from './pages/home';
 import Chat from './pages/chat';
 import Login from './pages/login';
@@ -20,11 +21,19 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Home />} />
-        <Route path="chat" element={<Chat />} />
-        <Route path="me" element={<Me />} />
-        <Route path="settings" element={<Settings />} />
-        <Route path="settings/llm" element={<LlmSettings />} />
+        <Route
+          element={
+            <SSEProvider>
+              <Outlet />
+            </SSEProvider>
+          }
+        >
+          <Route path="/" element={<Home />} />
+          <Route path="chat" element={<Chat />} />
+          <Route path="me" element={<Me />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="settings/llm" element={<LlmSettings />} />
+        </Route>
       </Route>
     </Routes>
   );
