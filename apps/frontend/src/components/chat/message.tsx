@@ -167,6 +167,30 @@ function renderToolPart(part: MessagePart, key: string): React.ReactNode {
       );
     return null;
   }
+  if (part.type === 'tool-send_message') {
+    const msg = (p.input?.message ?? '') as string;
+    const title = (p.input?.title ?? '') as string;
+    if (isLoading)
+      return (
+        <div key={key} className="inline-flex items-center gap-2 text-sm text-muted-foreground my-1">
+          <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+          <span>{msg ? `发送消息: ${msg}` : '发送消息…'}</span>
+        </div>
+      );
+    if (hasResult)
+      return (
+        <div key={key} className="mt-1 text-sm text-muted-foreground">
+          {title ? (
+            <>
+              已发送通知 <span className="font-medium">{title}</span>: {msg || '—'}
+            </>
+          ) : (
+            <>已发送消息: {msg || '—'}</>
+          )}
+        </div>
+      );
+    return null;
+  }
   if (
     part.type === 'tool-shell' ||
     part.type === 'tool-read_file' ||
