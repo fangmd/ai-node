@@ -2,7 +2,9 @@ import { useEffect } from 'react';
 import { Routes, Route, useNavigate, Outlet } from 'react-router-dom';
 import { setOnUnauthorized } from '@/lib/request';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { SSEMessageHandler } from '@/components/SSEMessageHandler';
 import { SSEProvider } from '@/contexts/SSEContext';
+import { Toaster } from 'sonner';
 import Home from './pages/home';
 import Chat from './pages/chat';
 import Login from './pages/login';
@@ -24,6 +26,8 @@ export default function App() {
         <Route
           element={
             <SSEProvider>
+              <Toaster richColors position="top-right" />
+              <SSEMessageHandler />
               <Outlet />
             </SSEProvider>
           }

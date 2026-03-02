@@ -22,6 +22,11 @@ sse.get('/sse', async (c) => {
       data: JSON.stringify({ userId }),
     });
 
+    await stream.writeSSE({
+      event: 'user-message',
+      data: JSON.stringify({ message: '连接成功', title: 'AI' }),
+    });
+
     await new Promise<void>((resolve) => {
       c.req.raw.signal?.addEventListener('abort', () => resolve(), { once: true });
     });
