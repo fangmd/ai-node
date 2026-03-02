@@ -48,8 +48,8 @@ importers:
         specifier: ^1.19.9
         version: 1.19.9(hono@4.11.9)
       '@json-render/core':
-        specifier: ^0.6.0
-        version: 0.6.0(zod@4.3.6)
+        specifier: ^0.11.0
+        version: 0.11.0(zod@4.3.6)
       '@prisma/adapter-mariadb':
         specifier: ^7.4.0
         version: 7.4.0
@@ -123,9 +123,15 @@ importers:
       '@ai-sdk/react':
         specifier: ^3.0.87
         version: 3.0.87(react@19.2.4)(zod@4.3.6)
+      '@json-render/core':
+        specifier: 0.11.0
+        version: 0.11.0(zod@4.3.6)
       '@json-render/react':
-        specifier: ^0.6.0
-        version: 0.6.0(react@19.2.4)(zod@4.3.6)
+        specifier: ^0.11.0
+        version: 0.11.0(react@19.2.4)(zod@4.3.6)
+      '@json-render/shadcn':
+        specifier: ^0.11.0
+        version: 0.11.0(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)(zod@4.3.6)
       '@radix-ui/react-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -215,11 +221,14 @@ importers:
   packages/json-render:
     dependencies:
       '@json-render/core':
-        specifier: ^0.6.0
-        version: 0.6.0(zod@4.3.6)
+        specifier: ^0.11.0
+        version: 0.11.0(zod@4.3.6)
       '@json-render/react':
-        specifier: ^0.6.0
-        version: 0.6.0(react@19.2.4)(zod@4.3.6)
+        specifier: ^0.11.0
+        version: 0.11.0(react@19.2.4)(zod@4.3.6)
+      '@json-render/shadcn':
+        specifier: ^0.11.0
+        version: 0.11.0(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)(zod@4.3.6)
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -668,15 +677,23 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@json-render/core@0.6.0':
-    resolution: {integrity: sha512-ZHpbSFHcINyNkuyrK4eOS8euEcAXqDHxILO/8VYeg9jWoaj8OIi70+eCqiKMmkvt1JF6HHZU5MZAzdH5igD3tw==}
+  '@json-render/core@0.11.0':
+    resolution: {integrity: sha512-gktZDcWsQjE5Nmet0zxwl51QXgDF2s3oVOI42Hho3Q2OWPpODlsas6p0ePi1SzIlaQLONvqDLa4PHPt/DWOh/Q==}
     peerDependencies:
       zod: ^4.0.0
 
-  '@json-render/react@0.6.0':
-    resolution: {integrity: sha512-lStrFqpI14MVKLxa75cUK23o/TdDin6TKGCXebqYOH3UEUZIdPQR3PQ+CPO54yO2sIW+sVwrc6Q4BUsTeKa4cQ==}
+  '@json-render/react@0.11.0':
+    resolution: {integrity: sha512-PEKXBuOmHF+n+uFoYiwwDA1jUuFZNI43NpTtrDiVGtqKE7JLOZeLNibIsts52Zqd1FyHQk967qBI4MXklBMFMA==}
     peerDependencies:
       react: ^19.2.3
+
+  '@json-render/shadcn@0.11.0':
+    resolution: {integrity: sha512-+mROddB6+8z5kFmSytBPU87AsYSOnbUSU2SJgOTJ6tDEdKk+QrI8NyHov1qY+B2V0qcKTfq9I5e3AA8hcL4Guw==}
+    peerDependencies:
+      react: ^19.0.0
+      react-dom: ^19.0.0
+      tailwindcss: ^4.0.0
+      zod: ^4.0.0
 
   '@mrleebo/prisma-ast@0.13.1':
     resolution: {integrity: sha512-XyroGQXcHrZdvmrGJvsA9KNeOOgGMg1Vg9OlheUsBOSKznLMDl+YChxbkboRHvtFYJEMRYmlV3uoo/njCw05iw==}
@@ -2058,6 +2075,19 @@ packages:
   electron-to-chromium@1.5.279:
     resolution: {integrity: sha512-0bblUU5UNdOt5G7XqGiJtpZMONma6WAfq9vsFmtn9x1+joAObr6x1chfqyxFSDCAFwFhCQDrqeAr6MYdpwJ9Hg==}
 
+  embla-carousel-react@8.6.0:
+    resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.1 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+
+  embla-carousel-reactive-utils@8.6.0:
+    resolution: {integrity: sha512-fMVUDUEx0/uIEDM0Mz3dHznDhfX+znCCDCeIophYb1QGVM7YThSWX+wz11zlYwWFOr74b4QLGg0hrGPJeG2s4A==}
+    peerDependencies:
+      embla-carousel: 8.6.0
+
+  embla-carousel@8.6.0:
+    resolution: {integrity: sha512-SjWyZBHJPbqxHOzckOfo8lHisEaJWmwd23XppYFYVh10bU66/Pn5tkVkbkCMZVdbUE5eTCI2nD8OyIP4Z+uwkA==}
+
   empathic@2.0.0:
     resolution: {integrity: sha512-i6UzDscO/XfAcNYD75CfICkmfLedpyPDdozrLMmQc5ORaQcdMoc21OnlEylMIqI7U8eniKrPMxxtj8k0vhmJhA==}
     engines: {node: '>=14'}
@@ -2580,6 +2610,11 @@ packages:
 
   lucide-react@0.563.0:
     resolution: {integrity: sha512-8dXPB2GI4dI8jV4MgUDGBeLdGk8ekfqVZ0BdLcrRzocGgG75ltNEmWS+gE7uokKF/0oSUuczNDT+g9hFJ23FkA==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  lucide-react@0.564.0:
+    resolution: {integrity: sha512-JJ8GVTQqFwuliifD48U6+h7DXEHdkhJ/E87kksGByII3qHxtPciVb8T8woQONHBQgHVOl7rSMrrip3SeVNy7Fg==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -3159,6 +3194,9 @@ packages:
   tailwind-merge@3.4.0:
     resolution: {integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==}
 
+  tailwind-merge@3.5.0:
+    resolution: {integrity: sha512-I8K9wewnVDkL1NTGoqWmVEIlUcB9gFriAEkXkfCjX5ib8ezGxtR3xD7iZIxrfArjEsH7F1CHD4RFUtxefdqV/A==}
+
   tailwindcss@4.1.18:
     resolution: {integrity: sha512-4+Z+0yiYyEtUVCScyfHCxOYP06L5Ne+JiHhY2IjR2KWMIWhJOYZKLSGZaP5HkZ8+bY0cxfzwDE5uOmzFXyIwxw==}
 
@@ -3310,6 +3348,12 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  vaul@1.1.2:
+    resolution: {integrity: sha512-ZFkClGpWyI2WUQjdLJ/BaGuV6AVQiJ3uELGk3OYtP+B6yCO7Cmn9vPFXVJkRaGkOJu3m8bQMgtyzNHixULceQA==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
 
   vfile-location@5.0.3:
     resolution: {integrity: sha512-5yXvWDEgqeiYiBe1lbxYF7UMAIm/IcopxMHrMQDq3nvKcjPKIhZklUKL+AE7J7uApI4kwe2snsK+eI6UTj9EHg==}
@@ -3809,16 +3853,35 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@json-render/core@0.6.0(zod@4.3.6)':
+  '@json-render/core@0.11.0(zod@4.3.6)':
     dependencies:
       zod: 4.3.6
 
-  '@json-render/react@0.6.0(react@19.2.4)(zod@4.3.6)':
+  '@json-render/react@0.11.0(react@19.2.4)(zod@4.3.6)':
     dependencies:
-      '@json-render/core': 0.6.0(zod@4.3.6)
+      '@json-render/core': 0.11.0(zod@4.3.6)
       react: 19.2.4
     transitivePeerDependencies:
       - zod
+
+  '@json-render/shadcn@0.11.0(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)(zod@4.3.6)':
+    dependencies:
+      '@json-render/core': 0.11.0(zod@4.3.6)
+      '@json-render/react': 0.11.0(react@19.2.4)(zod@4.3.6)
+      class-variance-authority: 0.7.1
+      clsx: 2.1.1
+      embla-carousel-react: 8.6.0(react@19.2.4)
+      lucide-react: 0.564.0(react@19.2.4)
+      radix-ui: 1.4.3(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      tailwind-merge: 3.5.0
+      tailwindcss: 4.1.18
+      vaul: 1.1.2(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      zod: 4.3.6
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
 
   '@mrleebo/prisma-ast@0.13.1':
     dependencies:
@@ -5168,6 +5231,18 @@ snapshots:
 
   electron-to-chromium@1.5.279: {}
 
+  embla-carousel-react@8.6.0(react@19.2.4):
+    dependencies:
+      embla-carousel: 8.6.0
+      embla-carousel-reactive-utils: 8.6.0(embla-carousel@8.6.0)
+      react: 19.2.4
+
+  embla-carousel-reactive-utils@8.6.0(embla-carousel@8.6.0):
+    dependencies:
+      embla-carousel: 8.6.0
+
+  embla-carousel@8.6.0: {}
+
   empathic@2.0.0: {}
 
   end-of-stream@1.4.5:
@@ -5696,6 +5771,10 @@ snapshots:
   lru.min@1.1.3: {}
 
   lucide-react@0.563.0(react@19.2.4):
+    dependencies:
+      react: 19.2.4
+
+  lucide-react@0.564.0(react@19.2.4):
     dependencies:
       react: 19.2.4
 
@@ -6603,6 +6682,8 @@ snapshots:
 
   tailwind-merge@3.4.0: {}
 
+  tailwind-merge@3.5.0: {}
+
   tailwindcss@4.1.18: {}
 
   tapable@2.3.0: {}
@@ -6738,6 +6819,15 @@ snapshots:
   valibot@1.2.0(typescript@5.9.3):
     optionalDependencies:
       typescript: 5.9.3
+
+  vaul@1.1.2(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+    dependencies:
+      '@radix-ui/react-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
 
   vfile-location@5.0.3:
     dependencies:

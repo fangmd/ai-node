@@ -4,6 +4,7 @@ import {
   StateProvider,
   VisibilityProvider,
   ActionProvider,
+  ValidationProvider,
   useStateStore,
 } from '@json-render/react';
 import { isValidSpec, type Spec } from '@ai-node/json-render';
@@ -58,12 +59,14 @@ function ActionProviderWithRegistryHandlers({
 
   return (
     <ActionProvider handlers={handlers}>
-      <Renderer
-        spec={spec}
-        registry={registry}
-        fallback={fallbackRenderer}
-        loading={loading}
-      />
+      <ValidationProvider customFunctions={{}}>
+        <Renderer
+          spec={spec}
+          registry={registry}
+          fallback={fallbackRenderer}
+          loading={loading}
+        />
+      </ValidationProvider>
     </ActionProvider>
   );
 }
