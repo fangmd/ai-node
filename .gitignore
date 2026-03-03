@@ -14,3 +14,4 @@ prod-my-docker-compose.yml
 /apps/workspace
 
 logs
+node_22_image.tar

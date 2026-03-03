@@ -21,8 +21,8 @@ RUN pnpm --filter backend exec prisma generate
 RUN pnpm --filter backend run build
 
 # Run stage: production deps + dist + generated client only
-FROM node:22-alpine AS runner
-RUN apk add --no-cache bash && corepack enable && corepack prepare pnpm@latest --activate
+FROM node:22 AS runner
+RUN apt-get update && apt-get install -y bash && rm -rf /var/lib/apt/lists/* && corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
