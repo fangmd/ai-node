@@ -28,7 +28,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
 
 RUN pnpm install -g agent-browser
-RUN agent-browser install
+RUN agent-browser install --with-deps
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/types/package.json ./packages/types/
