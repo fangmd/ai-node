@@ -22,13 +22,21 @@ RUN pnpm --filter backend run build
 
 # Run stage: production deps + dist + generated client only
 FROM node:22 AS runner
-RUN apt-get update && apt-get install -y bash && rm -rf /var/lib/apt/lists/* && corepack enable && corepack prepare pnpm@latest --activate
+# Chromium 依赖：容器内无 sudo，用 root 直接 apt 安装（--with-deps 会调 sudo 导致失败）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 \
+    libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2 \
+    libpango-1.0-0 libcairo2 libatspi2.0-0 libxshmfence1 \
+    fonts-liberation libappindicator3-1 xdg-utils \
+    && rm -rf /var/lib/apt/lists/* \
+    && corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
 
 RUN pnpm install -g agent-browser
-RUN agent-browser install --with-deps
+RUN agent-browser install
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/types/package.json ./packages/types/
