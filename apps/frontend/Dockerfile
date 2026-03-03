@@ -4,12 +4,15 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Copy only package.json for each workspace package (better layer cache)
 COPY packages/types/package.json ./packages/types/
+COPY packages/json-render/package.json ./packages/json-render/
+COPY packages/prettier-config/package.json ./packages/prettier-config/
 COPY apps/frontend/package.json ./apps/frontend/
 
 RUN pnpm install --frozen-lockfile
 
-COPY packages/types ./packages/types
+COPY packages/ ./packages/
 COPY apps/frontend ./apps/frontend
 COPY tsconfig.base.json ./
 
