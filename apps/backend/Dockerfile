@@ -1,11 +1,7 @@
 # Build stage: install deps, generate Prisma client, build backend (context: repo root)
 FROM node:22-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
-
-RUN pnpm install -g agent-browser
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Copy only package.json for each workspace package (better layer cache)
@@ -27,7 +23,11 @@ RUN pnpm --filter backend run build
 # Run stage: production deps + dist + generated client only
 FROM node:22-alpine AS runner
 RUN apk add --no-cache bash && corepack enable && corepack prepare pnpm@latest --activate
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
+
+RUN pnpm install -g agent-browser
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/types/package.json ./packages/types/
@@ -36,6 +36,7 @@ COPY packages/prettier-config/package.json ./packages/prettier-config/
 COPY apps/backend/package.json ./apps/backend/
 
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+
 COPY packages/ ./packages/
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder /app/apps/backend/src/generated ./apps/backend/src/generated
