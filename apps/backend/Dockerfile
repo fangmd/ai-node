@@ -4,12 +4,11 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/types/package.json ./packages/types/
+COPY packages/ ./packages/
 COPY apps/backend/package.json ./apps/backend/
 
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
-COPY packages/types ./packages/types
 COPY apps/backend ./apps/backend
 COPY tsconfig.base.json ./
 
@@ -23,12 +22,10 @@ RUN apk add --no-cache bash && corepack enable && corepack prepare pnpm@latest -
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/types/package.json ./packages/types/
+COPY packages/ ./packages/
 COPY apps/backend/package.json ./apps/backend/
 
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
-
-COPY packages/types ./packages/types
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder /app/apps/backend/src/generated ./apps/backend/src/generated
 COPY --from=builder /app/apps/backend/prisma ./apps/backend/prisma
