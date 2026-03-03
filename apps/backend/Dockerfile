@@ -3,6 +3,8 @@ FROM node:22-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
+RUN pnpm install -g agent-browser
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Copy only package.json for each workspace package (better layer cache)
 COPY packages/types/package.json ./packages/types/
